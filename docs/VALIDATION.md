@@ -2,6 +2,8 @@
 
 Verified on Windows with Node.js 24, Python 3.13 and FFmpeg. Current source: Open Higgs 0.4.0-alpha.1.
 
+The public GitHub CI matrix also passed on Linux with Node 22 and 24 and on Windows with Node 24. Each job installs from the lockfile, builds the application, runs the backend and worker tests, and verifies formatting, source provenance and publication hygiene. The Linux Node 24 job also verifies the FFmpeg render.
+
 - TypeScript checks cover the frontend, backend and inherited MCP service.
 - Fourteen backend tests cover the job lifecycle, API payloads, persistence, cross-origin writes, worker leases, graph bindings, preflight errors, uploads, media archival, atomic batches, idempotency, bounded dispatch, cancellation and task recovery.
 - The real Python worker passed an isolated HTTP integration test with input-media upload, simulated ComfyUI inference, output upload and result retrieval. This is a protocol test, not a GPU benchmark.
