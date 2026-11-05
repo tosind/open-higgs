@@ -1,0 +1,464 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux3-image-klein-int8-convrot.safetensors",
+      "weight_dtype": "default"
+    },
+    "_meta": {
+      "slots": {
+        "unet_name": "klein"
+      }
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_4b_int8_convrot.safetensors",
+      "type": "flux3",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    },
+    "_meta": {
+      "slots": {
+        "vae_name": "vae"
+      }
+    }
+  },
+  "4": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    },
+    "_meta": {
+      "title": "Frame before the edit",
+      "slots": {
+        "image": "base"
+      }
+    }
+  },
+  "5": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    },
+    "_meta": {
+      "title": "Reference: the strokes",
+      "slots": {
+        "image": "reference"
+      }
+    }
+  },
+  "6": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    },
+    "_meta": {
+      "title": "Light plan (light edits)",
+      "slots": {
+        "image": "plan"
+      }
+    }
+  },
+  "7": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    },
+    "_meta": {
+      "title": "Start image",
+      "slots": {
+        "image": "start"
+      }
+    }
+  },
+  "8": {
+    "class_type": "LoadImageMask",
+    "inputs": {
+      "image": "",
+      "channel": "red"
+    },
+    "_meta": {
+      "title": "Edit mask",
+      "slots": {
+        "image": "mask"
+      }
+    }
+  },
+  "9": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "",
+      "clip": [
+        "2",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "Caption",
+      "slots": {
+        "text": "caption"
+      }
+    }
+  },
+  "10": {
+    "class_type": "ConditioningZeroOut",
+    "inputs": {
+      "conditioning": [
+        "9",
+        0
+      ]
+    }
+  },
+  "11": {
+    "class_type": "ReferenceMultiLatent",
+    "inputs": {
+      "positive": [
+        "9",
+        0
+      ],
+      "negative": [
+        "10",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "resolution": "keep resolution",
+      "images.image0": [
+        "5",
+        0
+      ],
+      "images.image1": [
+        "6",
+        0
+      ]
+    },
+    "_meta": {
+      "slots": {
+        "images.image1": "edit_plan"
+      }
+    }
+  },
+  "12": {
+    "class_type": "GrowMask",
+    "inputs": {
+      "mask": [
+        "8",
+        0
+      ],
+      "expand": 16,
+      "tapered_corners": true
+    },
+    "_meta": {
+      "slots": {
+        "expand": "grow"
+      }
+    }
+  },
+  "13": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": [
+        "7",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    }
+  },
+  "14": {
+    "class_type": "SetLatentNoiseMask",
+    "inputs": {
+      "samples": [
+        "13",
+        0
+      ],
+      "mask": [
+        "12",
+        0
+      ]
+    }
+  },
+  "15": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "seed": 0,
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": [
+        "11",
+        0
+      ],
+      "negative": [
+        "11",
+        1
+      ],
+      "latent_image": [
+        "14",
+        0
+      ],
+      "denoise": 1.0
+    },
+    "_meta": {
+      "slots": {
+        "seed": "seed",
+        "steps": "steps",
+        "denoise": "denoise"
+      },
+      "progress": true
+    }
+  },
+  "16": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "15",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    }
+  },
+  "17": {
+    "class_type": "MaskToImage",
+    "inputs": {
+      "mask": [
+        "12",
+        0
+      ]
+    }
+  },
+  "18": {
+    "class_type": "ImageBlur",
+    "inputs": {
+      "image": [
+        "17",
+        0
+      ],
+      "blur_radius": 12,
+      "sigma": 6.0
+    },
+    "_meta": {
+      "slots": {
+        "blur_radius": "feather",
+        "sigma": "sigma"
+      }
+    }
+  },
+  "19": {
+    "class_type": "ImageToMask",
+    "inputs": {
+      "channel": "red",
+      "image": [
+        "18",
+        0
+      ]
+    }
+  },
+  "20": {
+    "class_type": "PaintAPlate_LevelFill",
+    "inputs": {
+      "image": [
+        "16",
+        0
+      ],
+      "alpha": [
+        "19",
+        0
+      ],
+      "base": [
+        "4",
+        0
+      ],
+      "paint": [
+        "8",
+        0
+      ],
+      "enabled": false
+    },
+    "_meta": {
+      "title": "Fill levelled with the background (erase only)",
+      "slots": {
+        "enabled": "level"
+      }
+    }
+  },
+  "21": {
+    "class_type": "ImageCompositeMasked",
+    "inputs": {
+      "destination": [
+        "4",
+        0
+      ],
+      "source": [
+        "20",
+        0
+      ],
+      "x": 0,
+      "y": 0,
+      "resize_source": false,
+      "mask": [
+        "19",
+        0
+      ]
+    }
+  },
+  "22": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "21",
+        0
+      ],
+      "filename_prefix": "paintaplate/edits/edit"
+    },
+    "_meta": {
+      "title": "Edited frame",
+      "slots": {
+        "filename_prefix": "prefix"
+      },
+      "output": "result"
+    }
+  },
+  "23": {
+    "class_type": "InvertMask",
+    "inputs": {
+      "mask": [
+        "19",
+        0
+      ]
+    }
+  },
+  "24": {
+    "class_type": "JoinImageWithAlpha",
+    "inputs": {
+      "image": [
+        "20",
+        0
+      ],
+      "alpha": [
+        "23",
+        0
+      ]
+    }
+  },
+  "25": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "24",
+        0
+      ],
+      "filename_prefix": "paintaplate/edits/edit"
+    },
+    "_meta": {
+      "title": "Edit patch (RGBA)",
+      "slots": {
+        "filename_prefix": "prefix"
+      },
+      "output": "patch"
+    }
+  },
+  "26": {
+    "class_type": "ImageScaleBy",
+    "inputs": {
+      "image": [
+        "4",
+        0
+      ],
+      "upscale_method": "area",
+      "scale_by": 0.5
+    }
+  },
+  "27": {
+    "class_type": "ImageScaleBy",
+    "inputs": {
+      "image": [
+        "21",
+        0
+      ],
+      "upscale_method": "area",
+      "scale_by": 0.5
+    }
+  },
+  "28": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    },
+    "_meta": {
+      "title": "Painted shade (light edits)",
+      "slots": {
+        "image": "shade"
+      }
+    }
+  },
+  "29": {
+    "class_type": "PaintAPlate_RelightTransfer",
+    "inputs": {
+      "plate": [
+        "4",
+        0
+      ],
+      "source": [
+        "26",
+        0
+      ],
+      "relit": [
+        "27",
+        0
+      ],
+      "radius": 1,
+      "strength": 0.0,
+      "align": true,
+      "plate_space": "sRGB",
+      "shot_space": "sRGB",
+      "shade": [
+        "28",
+        0
+      ]
+    },
+    "_meta": {
+      "slots": {
+        "strength": "relight",
+        "plate": "relit_frame",
+        "shade": "relight_shade"
+      }
+    }
+  },
+  "30": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "29",
+        0
+      ],
+      "filename_prefix": "paintaplate/edits/edit"
+    },
+    "_meta": {
+      "title": "Relit frame",
+      "slots": {
+        "filename_prefix": "prefix"
+      },
+      "output": "relit"
+    }
+  }
+}

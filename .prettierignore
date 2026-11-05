@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data/
+work/
+integrations/
+workflows/
+notebooks/
+package-lock.json
+README.upstream.md

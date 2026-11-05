@@ -1,0 +1,84 @@
+{
+  "src": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "input_video.mp4",
+      "force_rate": 0,
+      "custom_width": 0,
+      "custom_height": 0,
+      "frame_load_cap": 120,
+      "skip_first_frames": 0,
+      "select_every_nth": 1
+    }
+  },
+  "fit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "src",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 1280,
+      "height": 704,
+      "crop": "center"
+    }
+  },
+  "bgm": {
+    "class_type": "LoadBackgroundRemovalModel",
+    "inputs": {
+      "bg_removal_name": "birefnet.safetensors"
+    }
+  },
+  "matte": {
+    "class_type": "RemoveBackground",
+    "inputs": {
+      "bg_removal_model": [
+        "bgm",
+        0
+      ],
+      "image": [
+        "fit",
+        0
+      ]
+    }
+  },
+  "bgMask": {
+    "class_type": "InvertMask",
+    "inputs": {
+      "mask": [
+        "matte",
+        0
+      ]
+    }
+  },
+  "rgba": {
+    "class_type": "JoinImageWithAlpha",
+    "inputs": {
+      "image": [
+        "fit",
+        0
+      ],
+      "alpha": [
+        "bgMask",
+        0
+      ]
+    }
+  },
+  "save": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": [
+        "rgba",
+        0
+      ],
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "openfield/cutout",
+      "format": "video/ProRes",
+      "profile": "4444",
+      "pingpong": false,
+      "save_output": true
+    }
+  }
+}

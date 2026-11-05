@@ -1,0 +1,143 @@
+{
+  "u": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux2_dev_fp8mixed.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "c": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "mistral_3_small_flux2_fp4_mixed.safetensors",
+      "type": "flux2",
+      "device": "default"
+    }
+  },
+  "v": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    }
+  },
+  "pos": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "c",
+        0
+      ],
+      "text": "A lighthouse on black rocks at dusk, storm clouds, one warm window lit, wet stone."
+    }
+  },
+  "fg": {
+    "class_type": "FluxGuidance",
+    "inputs": {
+      "conditioning": [
+        "pos",
+        0
+      ],
+      "guidance": 4
+    }
+  },
+  "guider": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": [
+        "lora",
+        0
+      ],
+      "conditioning": [
+        "fg",
+        0
+      ]
+    }
+  },
+  "sched": {
+    "class_type": "Flux2Scheduler",
+    "inputs": {
+      "steps": 8,
+      "width": 1328,
+      "height": 752
+    }
+  },
+  "sampler": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler"
+    }
+  },
+  "noise": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    }
+  },
+  "lat": {
+    "class_type": "EmptyFlux2LatentImage",
+    "inputs": {
+      "width": 1328,
+      "height": 752,
+      "batch_size": 1
+    }
+  },
+  "sca": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "noise",
+        0
+      ],
+      "guider": [
+        "guider",
+        0
+      ],
+      "sampler": [
+        "sampler",
+        0
+      ],
+      "sigmas": [
+        "sched",
+        0
+      ],
+      "latent_image": [
+        "lat",
+        0
+      ]
+    }
+  },
+  "d": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "sca",
+        0
+      ],
+      "vae": [
+        "v",
+        0
+      ]
+    }
+  },
+  "save": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "d",
+        0
+      ],
+      "filename_prefix": "OpenField_still"
+    }
+  },
+  "lora": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": [
+        "u",
+        0
+      ],
+      "lora_name": "Flux2TurboComfyv2.safetensors",
+      "strength_model": 1
+    }
+  }
+}

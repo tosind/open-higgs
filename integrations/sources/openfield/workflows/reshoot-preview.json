@@ -1,0 +1,118 @@
+{
+  "src": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "input_video.mp4",
+      "force_rate": 24,
+      "custom_width": 864,
+      "custom_height": 480,
+      "frame_load_cap": 97,
+      "skip_first_frames": 0,
+      "select_every_nth": 1
+    }
+  },
+  "srcFit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "src",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 864,
+      "height": 480,
+      "crop": "center"
+    }
+  },
+  "mogeModel": {
+    "class_type": "LoadMoGeModel",
+    "inputs": {
+      "model_name": "moge_2_vitl_normal_fp16.safetensors"
+    }
+  },
+  "moge": {
+    "class_type": "MoGeInference",
+    "inputs": {
+      "moge_model": [
+        "mogeModel",
+        0
+      ],
+      "image": [
+        "srcFit",
+        0
+      ],
+      "resolution_level": 2,
+      "fov_x_degrees": 0,
+      "batch_size": 4,
+      "force_projection": true,
+      "apply_mask": true,
+      "refine_steps": 0
+    }
+  },
+  "warp": {
+    "class_type": "CrossViewWarp",
+    "inputs": {
+      "frames": [
+        "srcFit",
+        0
+      ],
+      "moge_geometry": [
+        "moge",
+        0
+      ],
+      "azimuth": 30,
+      "elevation": 10,
+      "distance": 1,
+      "hfov": 0,
+      "vertical_shift": 0,
+      "depth_ratio": 6,
+      "smooth_depth": false,
+      "invert_depth": false,
+      "roll_lock": false,
+      "pivot_override": true,
+      "pivot_x": 0,
+      "pivot_y": 0,
+      "pivot_z": 1.05,
+      "use_keyframes": false,
+      "frame_count": 0,
+      "keyframes": "",
+      "interp_motion": "ease_in_out",
+      "interpolation": "linear",
+      "keep_source_aim": true,
+      "preview_size": 384,
+      "frame_index": 1
+    }
+  },
+  "video": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "warp",
+        0
+      ],
+      "fps": 24
+    }
+  },
+  "save": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "video",
+        0
+      ],
+      "filename_prefix": "openfield/reshoot-warp",
+      "format": "auto",
+      "codec": "auto"
+    }
+  },
+  "saveOrbit": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "warp",
+        1
+      ],
+      "filename_prefix": "openfield/reshoot-warp-orbit"
+    }
+  }
+}

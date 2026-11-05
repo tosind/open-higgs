@@ -1,0 +1,278 @@
+{
+  "1": {
+    "class_type": "PaintAPlate_LoadPlate",
+    "inputs": {
+      "path": "",
+      "max_frames": 121,
+      "pad_8n1": true
+    },
+    "_meta": {
+      "title": "Plate",
+      "slots": {
+        "path": "path",
+        "max_frames": "max_frames"
+      }
+    }
+  },
+  "2": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "1",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "@model",
+      "destination": "@model"
+    },
+    "_meta": {
+      "title": "Plate in the model space",
+      "slots": {
+        "config": "config",
+        "source": "color_space"
+      }
+    }
+  },
+  "3": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "2",
+        0
+      ],
+      "upscale_method": "area",
+      "width": 960,
+      "height": 544,
+      "crop": "disabled"
+    },
+    "_meta": {
+      "slots": {
+        "width": "width",
+        "height": "height"
+      }
+    }
+  },
+  "4": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "sam3.1_multiplex_fp16.safetensors"
+    },
+    "_meta": {
+      "slots": {
+        "ckpt_name": "sam"
+      }
+    }
+  },
+  "5": {
+    "class_type": "LoadImageMask",
+    "inputs": {
+      "image": "",
+      "channel": "red"
+    },
+    "_meta": {
+      "title": "Area on the first frame",
+      "slots": {
+        "image": "mask"
+      }
+    }
+  },
+  "6": {
+    "class_type": "SAM3_VideoTrack",
+    "inputs": {
+      "images": [
+        "3",
+        0
+      ],
+      "model": [
+        "4",
+        0
+      ],
+      "initial_mask": [
+        "5",
+        0
+      ],
+      "detection_threshold": 0.5,
+      "max_objects": 4,
+      "detect_interval": 1
+    },
+    "_meta": {
+      "progress": true
+    }
+  },
+  "7": {
+    "class_type": "SAM3_TrackToMask",
+    "inputs": {
+      "track_data": [
+        "6",
+        0
+      ],
+      "object_indices": ""
+    }
+  },
+  "8": {
+    "class_type": "PaintAPlate_LoadPlate",
+    "inputs": {
+      "path": "",
+      "max_frames": 121,
+      "pad_8n1": true
+    },
+    "_meta": {
+      "title": "Plate under the shot",
+      "slots": {
+        "path": "base",
+        "max_frames": "max_frames"
+      }
+    }
+  },
+  "9": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "8",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "@model",
+      "destination": "@model"
+    },
+    "_meta": {
+      "slots": {
+        "config": "config",
+        "source": "base_color_space"
+      }
+    }
+  },
+  "10": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "9",
+        0
+      ],
+      "upscale_method": "area",
+      "width": 960,
+      "height": 544,
+      "crop": "disabled"
+    },
+    "_meta": {
+      "slots": {
+        "width": "width",
+        "height": "height"
+      }
+    }
+  },
+  "11": {
+    "class_type": "LoadImageMask",
+    "inputs": {
+      "image": "",
+      "channel": "red"
+    },
+    "_meta": {
+      "title": "Where the edit changed the first frame",
+      "slots": {
+        "image": "seed"
+      }
+    }
+  },
+  "12": {
+    "class_type": "PaintAPlate_FollowMatte",
+    "inputs": {
+      "masks": [
+        "7",
+        0
+      ],
+      "first": [
+        "5",
+        0
+      ],
+      "frames": [
+        "3",
+        0
+      ],
+      "base": [
+        "10",
+        0
+      ],
+      "element": [
+        "11",
+        0
+      ],
+      "zone": 0.0625,
+      "threshold": 0.1
+    },
+    "_meta": {
+      "slots": {
+        "zone": "zone",
+        "threshold": "threshold",
+        "base": "follow_base",
+        "element": "follow_element"
+      }
+    }
+  },
+  "13": {
+    "class_type": "MaskToImage",
+    "inputs": {
+      "mask": [
+        "12",
+        0
+      ]
+    }
+  },
+  "14": {
+    "class_type": "PaintAPlate_SaveFrames",
+    "inputs": {
+      "images": [
+        "13",
+        0
+      ],
+      "filename_prefix": "paintaplate/plate/matte/m"
+    },
+    "_meta": {
+      "title": "Matte frames",
+      "slots": {
+        "filename_prefix": "prefix"
+      },
+      "output": "frames"
+    }
+  },
+  "15": {
+    "class_type": "PaintAPlate_SaveMovie",
+    "inputs": {
+      "width": 0,
+      "height": 0,
+      "images": [
+        "13",
+        0
+      ],
+      "fps": [
+        "1",
+        3
+      ],
+      "crf": 18,
+      "filename_prefix": ""
+    },
+    "_meta": {
+      "title": "Matte movie (grey): its row in the Render panel shows it",
+      "slots": {
+        "width": "movie_width",
+        "height": "movie_height",
+        "filename_prefix": "video_prefix",
+        "images": "matte_movie"
+      },
+      "output": "movie"
+    }
+  },
+  "16": {
+    "class_type": "PreviewAny",
+    "inputs": {
+      "source": [
+        "12",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "How the matte followed",
+      "output": "follow"
+    }
+  }
+}

@@ -1,3 +1,22 @@
+# Open Higgs changelog
+
+## 0.4.0-alpha.1
+
+First public Open Higgs preview, based on Openfield.
+
+- Added a unified story canvas, shots and timeline.
+- Added WaveSpeed, Kie Market, local ComfyUI and Kaggle worker execution paths.
+- Imported 125 API workflow recipes with source hashes, licenses and notices.
+- Added graph input forms, local model/node preflight, media transfer and output archival.
+- Added batch queues, bounded local/provider execution, waiting-job cancellation and existing-task recovery.
+- Added idempotent submission requests and project saving before switching.
+- Added soundtrack export, Windows-compatible media paths and isolated integration tests.
+- Added contributor documentation, publication checks and Linux/Windows CI.
+
+Paid API and real GPU inference are not certified by the automated checks. See docs/VALIDATION.md.
+
+## Upstream Openfield history
+
 # Changelog
 
 ## 0.2.0 (unreleased)

@@ -1,4 +1,7 @@
 node_modules
+work/
+__pycache__/
+.playwright-cli/
 data/
 dist/
 .playwright-mcp/
@@ -6,6 +9,8 @@ dist/
 
 # local config
 .env
+.env.*
+!.env.example
 
 # third-party UI reference screenshots (never ship or commit)
 docs/ref-screens/

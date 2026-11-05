@@ -1,0 +1,543 @@
+{
+  "1": {
+    "class_type": "PaintAPlate_LoadPlate",
+    "inputs": {
+      "path": "",
+      "max_frames": 121,
+      "pad_8n1": true
+    },
+    "_meta": {
+      "title": "Plate",
+      "slots": {
+        "path": "path",
+        "max_frames": "max_frames"
+      }
+    }
+  },
+  "2": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "1",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "@model",
+      "destination": "@model"
+    },
+    "_meta": {
+      "title": "Plate in the model space",
+      "slots": {
+        "config": "config",
+        "source": "color_space"
+      }
+    }
+  },
+  "3": {
+    "class_type": "PaintAPlate_LoadPlate",
+    "inputs": {
+      "path": "",
+      "max_frames": 1024,
+      "pad_8n1": false
+    },
+    "_meta": {
+      "title": "Generated shot",
+      "slots": {
+        "path": "shot"
+      }
+    }
+  },
+  "4": {
+    "class_type": "PaintAPlate_LoadPlate",
+    "inputs": {
+      "path": "",
+      "max_frames": 1024,
+      "pad_8n1": false
+    },
+    "_meta": {
+      "title": "Erase matte",
+      "slots": {
+        "path": "matte_a"
+      }
+    }
+  },
+  "5": {
+    "class_type": "PaintAPlate_LoadPlate",
+    "inputs": {
+      "path": "",
+      "max_frames": 1024,
+      "pad_8n1": false
+    },
+    "_meta": {
+      "title": "Paint matte",
+      "slots": {
+        "path": "matte_b"
+      }
+    }
+  },
+  "6": {
+    "class_type": "GetImageSize",
+    "inputs": {
+      "image": [
+        "5",
+        0
+      ]
+    }
+  },
+  "7": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "4",
+        0
+      ],
+      "upscale_method": "bilinear",
+      "width": [
+        "6",
+        0
+      ],
+      "height": [
+        "6",
+        1
+      ],
+      "crop": "disabled"
+    },
+    "_meta": {
+      "title": "Erase matte at the paint matte's size"
+    }
+  },
+  "8": {
+    "class_type": "ImageToMask",
+    "inputs": {
+      "image": [
+        "7",
+        0
+      ],
+      "channel": "red"
+    }
+  },
+  "9": {
+    "class_type": "ImageToMask",
+    "inputs": {
+      "image": [
+        "5",
+        0
+      ],
+      "channel": "red"
+    }
+  },
+  "10": {
+    "class_type": "MaskComposite",
+    "inputs": {
+      "destination": [
+        "8",
+        0
+      ],
+      "source": [
+        "9",
+        0
+      ],
+      "x": 0,
+      "y": 0,
+      "operation": "add"
+    }
+  },
+  "11": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "3",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "@model",
+      "destination": "@model"
+    },
+    "_meta": {
+      "title": "Shot in the plate's colour space",
+      "slots": {
+        "config": "config",
+        "destination": "color_space"
+      }
+    }
+  },
+  "12": {
+    "class_type": "GetImageSize",
+    "inputs": {
+      "image": [
+        "3",
+        0
+      ]
+    }
+  },
+  "13": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "2",
+        0
+      ],
+      "upscale_method": "area",
+      "width": [
+        "12",
+        0
+      ],
+      "height": [
+        "12",
+        1
+      ],
+      "crop": "disabled"
+    }
+  },
+  "14": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "1",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "@model",
+      "destination": "@linear"
+    },
+    "_meta": {
+      "slots": {
+        "config": "config",
+        "source": "color_space"
+      }
+    }
+  },
+  "15": {
+    "class_type": "ImageScaleBy",
+    "inputs": {
+      "image": [
+        "13",
+        0
+      ],
+      "upscale_method": "area",
+      "scale_by": 0.5
+    }
+  },
+  "16": {
+    "class_type": "ImageScaleBy",
+    "inputs": {
+      "image": [
+        "3",
+        0
+      ],
+      "upscale_method": "area",
+      "scale_by": 0.5
+    }
+  },
+  "17": {
+    "class_type": "PaintAPlate_RelightTransfer",
+    "inputs": {
+      "plate": [
+        "14",
+        0
+      ],
+      "source": [
+        "15",
+        0
+      ],
+      "relit": [
+        "16",
+        0
+      ],
+      "plate_space": "linear",
+      "shot_space": "sRGB",
+      "radius": 1,
+      "strength": 1.0,
+      "align": true
+    },
+    "_meta": {
+      "slots": {
+        "radius": "radius",
+        "strength": "strength"
+      }
+    }
+  },
+  "18": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "17",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "@linear",
+      "destination": "@model"
+    },
+    "_meta": {
+      "slots": {
+        "config": "config",
+        "destination": "color_space"
+      }
+    }
+  },
+  "19": {
+    "class_type": "ComfySwitchNode",
+    "inputs": {
+      "switch": false,
+      "on_false": [
+        "1",
+        0
+      ],
+      "on_true": [
+        "18",
+        0
+      ]
+    },
+    "_meta": {
+      "slots": {
+        "switch": "relight"
+      }
+    }
+  },
+  "20": {
+    "class_type": "PaintAPlate_LoadPlate",
+    "inputs": {
+      "path": "",
+      "max_frames": 1024,
+      "pad_8n1": false
+    },
+    "_meta": {
+      "title": "HDR shot",
+      "slots": {
+        "path": "hdr"
+      }
+    }
+  },
+  "21": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "20",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "ACES2065-1",
+      "destination": "@model"
+    },
+    "_meta": {
+      "title": "HDR shot in the plate's colour space",
+      "slots": {
+        "config": "config",
+        "destination": "color_space"
+      }
+    }
+  },
+  "22": {
+    "class_type": "PaintAPlate_HDRMatch",
+    "inputs": {
+      "image": [
+        "11",
+        0
+      ],
+      "plate": [
+        "1",
+        0
+      ],
+      "mask": [
+        "10",
+        0
+      ],
+      "hdr": [
+        "21",
+        0
+      ],
+      "grow": 24.0
+    },
+    "_meta": {
+      "title": "HDR Match: the HDR shot fitted to the plate",
+      "slots": {
+        "grow": "hdr_grow",
+        "hdr": "hdr_shot",
+        "mask": "fit_mask"
+      }
+    }
+  },
+  "23": {
+    "class_type": "PaintAPlate_FitToPlate",
+    "inputs": {
+      "plate": [
+        "19",
+        0
+      ],
+      "image": [
+        "22",
+        0
+      ],
+      "mask": [
+        "10",
+        0
+      ],
+      "align": true,
+      "max_shift": 8.0,
+      "match_color": true,
+      "grain": 1.0,
+      "grow": 8,
+      "feather": 12,
+      "steady": 2
+    },
+    "_meta": {
+      "slots": {
+        "grain": "grain",
+        "grow": "grow",
+        "feather": "feather",
+        "steady": "steady",
+        "mask": "fit_mask"
+      },
+      "progress": true
+    }
+  },
+  "24": {
+    "class_type": "ImageCompositeMasked",
+    "inputs": {
+      "destination": [
+        "19",
+        0
+      ],
+      "source": [
+        "23",
+        0
+      ],
+      "x": 0,
+      "y": 0,
+      "resize_source": false,
+      "mask": [
+        "23",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "Composite"
+    }
+  },
+  "25": {
+    "class_type": "ImageFromBatch",
+    "inputs": {
+      "image": [
+        "24",
+        0
+      ],
+      "batch_index": 0,
+      "length": [
+        "1",
+        4
+      ]
+    }
+  },
+  "26": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "25",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "@model",
+      "destination": "@model"
+    },
+    "_meta": {
+      "title": "Movie values",
+      "slots": {
+        "config": "config",
+        "source": "color_space",
+        "destination": "movie_space"
+      }
+    }
+  },
+  "27": {
+    "class_type": "PaintAPlate_SaveMovie",
+    "inputs": {
+      "width": 0,
+      "height": 0,
+      "images": [
+        "26",
+        0
+      ],
+      "fps": [
+        "1",
+        3
+      ],
+      "crf": 12,
+      "filename_prefix": "paintaplate/plate/review"
+    },
+    "_meta": {
+      "title": "Review movie (full-size composite, H.264)",
+      "slots": {
+        "width": "movie_width",
+        "height": "movie_height",
+        "filename_prefix": "review_prefix"
+      },
+      "output": "review"
+    }
+  },
+  "28": {
+    "class_type": "PaintAPlate_SaveFrames",
+    "inputs": {
+      "images": [
+        "25",
+        0
+      ],
+      "format": "exr",
+      "filename_prefix": ""
+    },
+    "_meta": {
+      "title": "Review frames (half-float EXR, image sequences only)",
+      "slots": {
+        "filename_prefix": "frames_prefix",
+        "images": "review_frames"
+      },
+      "output": "frames"
+    }
+  },
+  "29": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "25",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "@model",
+      "destination": "ACEScct"
+    },
+    "_meta": {
+      "title": "Viewer movie values",
+      "slots": {
+        "config": "config",
+        "source": "color_space",
+        "destination": "view_space"
+      }
+    }
+  },
+  "30": {
+    "class_type": "PaintAPlate_SaveMovie",
+    "inputs": {
+      "width": 0,
+      "height": 0,
+      "images": [
+        "29",
+        0
+      ],
+      "fps": [
+        "1",
+        3
+      ],
+      "crf": 12,
+      "filename_prefix": ""
+    },
+    "_meta": {
+      "title": "Viewer movie (image sequences: log values, the look of the EXR frames)",
+      "slots": {
+        "width": "movie_width",
+        "height": "movie_height",
+        "filename_prefix": "view_prefix",
+        "images": "review_view"
+      },
+      "output": "view"
+    }
+  }
+}

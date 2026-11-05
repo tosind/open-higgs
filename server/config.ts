@@ -7,7 +7,6 @@
  * Values come from the environment; a `.env` file next to package.json is
  * loaded first if present. See `.env.example`.
  */
-import { homedir } from 'os';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { parseTier } from '../src/renderTier.js';
@@ -102,7 +101,7 @@ export const config = {
   comfyModelsDir: process.env.COMFY_MODELS_DIR || '',
 
   /** Fallback output folder when no project is selected. */
-  outputDir: process.env.OPENFIELD_OUTPUT || join(homedir(), 'openfield-output'),
+  outputDir: process.env.OPENFIELD_OUTPUT || join(ROOT, 'data', 'outputs'),
 
   /**
    * Folder of loose .safetensors mapped into ComfyUI via extra_model_paths.

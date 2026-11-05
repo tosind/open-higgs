@@ -1,0 +1,168 @@
+{
+  "clip": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "lumina2",
+      "device": "default"
+    }
+  },
+  "unet": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "z_image_turbo_bf16.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "vae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    }
+  },
+  "control": {
+    "class_type": "ModelPatchLoader",
+    "inputs": {
+      "name": "Z-Image-Turbo-Fun-Controlnet-Union.safetensors"
+    }
+  },
+  "depth": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input_depth.png"
+    }
+  },
+  "depthScale": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "depth",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 1344,
+      "height": 736,
+      "crop": "disabled"
+    }
+  },
+  "depthFit": {
+    "class_type": "ImageBlur",
+    "inputs": {
+      "image": [
+        "depthScale",
+        0
+      ],
+      "blur_radius": 10,
+      "sigma": 4
+    }
+  },
+  "shift": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": {
+      "model": [
+        "unet",
+        0
+      ],
+      "shift": 3
+    }
+  },
+  "guided": {
+    "class_type": "QwenImageDiffsynthControlnet",
+    "inputs": {
+      "model": [
+        "shift",
+        0
+      ],
+      "model_patch": [
+        "control",
+        0
+      ],
+      "vae": [
+        "vae",
+        0
+      ],
+      "image": [
+        "depthFit",
+        0
+      ],
+      "strength": 0.75
+    }
+  },
+  "pos": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "clip",
+        0
+      ],
+      "text": "A woman in a long dark coat in a rain-soaked night alley between a wooden crate and a concrete pillar, neon on wet stone. Cinematic film still, natural light falling on real materials, every object where the layout puts it."
+    }
+  },
+  "neg": {
+    "class_type": "ConditioningZeroOut",
+    "inputs": {
+      "conditioning": [
+        "pos",
+        0
+      ]
+    }
+  },
+  "lat": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": 1344,
+      "height": 736,
+      "batch_size": 1
+    }
+  },
+  "k": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "guided",
+        0
+      ],
+      "positive": [
+        "pos",
+        0
+      ],
+      "negative": [
+        "neg",
+        0
+      ],
+      "latent_image": [
+        "lat",
+        0
+      ],
+      "seed": 42,
+      "steps": 9,
+      "cfg": 1,
+      "sampler_name": "res_multistep",
+      "scheduler": "simple",
+      "denoise": 1
+    }
+  },
+  "d": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "k",
+        0
+      ],
+      "vae": [
+        "vae",
+        0
+      ]
+    }
+  },
+  "save": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "d",
+        0
+      ],
+      "filename_prefix": "openfield/stage_look"
+    }
+  }
+}

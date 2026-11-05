@@ -1,0 +1,6 @@
+Open Higgs contains Openfield code, copyright 2026 David Wexler / Strangeloop Studios, licensed under MIT.
+Open Higgs modifications are copyright 2026 tosind and licensed under MIT.
+
+Third-party source snapshots retain their original licenses. See OPEN_HIGGS_NOTICES.md and integrations/manifest.json.
+
+Apache-2.0 components include OpenKatana, ReAngle and Paint a Plate. OpenKatana's original NOTICE, THIRD_PARTY_NOTICES.md and additional MIT notices are preserved under integrations/sources/openkatana/.

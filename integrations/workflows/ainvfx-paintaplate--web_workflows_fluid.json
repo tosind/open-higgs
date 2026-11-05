@@ -1,0 +1,480 @@
+{
+  "1": {
+    "class_type": "PaintAPlate_LoadPlate",
+    "inputs": {
+      "path": "",
+      "max_frames": 121,
+      "pad_8n1": true
+    },
+    "_meta": {
+      "title": "Plate",
+      "slots": {
+        "path": "path",
+        "max_frames": "max_frames"
+      }
+    }
+  },
+  "2": {
+    "class_type": "PaintAPlate_ColorSpace",
+    "inputs": {
+      "image": [
+        "1",
+        0
+      ],
+      "config": "ocio://studio-config-latest",
+      "source": "@model",
+      "destination": "@model"
+    },
+    "_meta": {
+      "title": "Plate in the model space",
+      "slots": {
+        "config": "config",
+        "source": "color_space"
+      }
+    }
+  },
+  "3": {
+    "class_type": "GetImageSize",
+    "inputs": {
+      "image": [
+        "2",
+        0
+      ]
+    }
+  },
+  "4": {
+    "class_type": "PaintAPlate_KeyframeVideo",
+    "inputs": {
+      "width": [
+        "3",
+        0
+      ],
+      "height": [
+        "3",
+        1
+      ],
+      "frames": [
+        "3",
+        2
+      ],
+      "keys": "[]"
+    },
+    "_meta": {
+      "title": "Control video: the keyframes on black",
+      "slots": {
+        "keys": "keys"
+      }
+    }
+  },
+  "5": {
+    "class_type": "PaintAPlate_SaveMovie",
+    "inputs": {
+      "width": 0,
+      "height": 0,
+      "images": [
+        "4",
+        0
+      ],
+      "fps": [
+        "1",
+        3
+      ],
+      "crf": 18,
+      "filename_prefix": ""
+    },
+    "_meta": {
+      "title": "Control video as a movie: the Fluid: keyframes row shows it",
+      "slots": {
+        "width": "movie_width",
+        "height": "movie_height",
+        "filename_prefix": "control_prefix",
+        "images": "fluid_control"
+      },
+      "output": "control"
+    }
+  },
+  "6": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors",
+      "weight_dtype": "default"
+    },
+    "_meta": {
+      "slots": {
+        "unet_name": "ltx"
+      }
+    }
+  },
+  "7": {
+    "class_type": "LTXICLoRALoaderModelOnly",
+    "inputs": {
+      "model": [
+        "6",
+        0
+      ],
+      "lora_name": "ainvfx-fluid.safetensors",
+      "strength_model": 1.0
+    },
+    "_meta": {
+      "title": "ainvfx-fluid IC-LoRA (reads its downscale factor)",
+      "slots": {
+        "lora_name": "fluid",
+        "strength_model": "strength"
+      }
+    }
+  },
+  "8": {
+    "class_type": "PaintAPlate_LivePreview",
+    "inputs": {
+      "model": [
+        "7",
+        0
+      ],
+      "decoder": "taeltx2_3.safetensors",
+      "frames": [
+        "3",
+        2
+      ],
+      "fps": [
+        "1",
+        3
+      ],
+      "every": 0,
+      "size": 320
+    },
+    "_meta": {
+      "title": "Live preview",
+      "slots": {
+        "decoder": "tiny",
+        "every": "live"
+      }
+    }
+  },
+  "9": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors",
+      "type": "ltxv",
+      "device": "default"
+    },
+    "_meta": {
+      "slots": {
+        "clip_name": "gemma"
+      }
+    }
+  },
+  "10": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-video-vae-conv-bf16.safetensors"
+    },
+    "_meta": {
+      "slots": {
+        "vae_name": "video_vae"
+      }
+    }
+  },
+  "11": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-audio-vae-bf16.safetensors"
+    }
+  },
+  "12": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "ainvfxfluid, smoke plume",
+      "clip": [
+        "9",
+        0
+      ]
+    },
+    "_meta": {
+      "slots": {
+        "text": "prompt"
+      }
+    }
+  },
+  "13": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "blurry, low quality, distorted, watermark",
+      "clip": [
+        "9",
+        0
+      ]
+    }
+  },
+  "14": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "12",
+        0
+      ],
+      "negative": [
+        "13",
+        0
+      ],
+      "frame_rate": [
+        "1",
+        3
+      ]
+    }
+  },
+  "15": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": [
+        "3",
+        0
+      ],
+      "height": [
+        "3",
+        1
+      ],
+      "length": [
+        "3",
+        2
+      ],
+      "batch_size": 1
+    }
+  },
+  "16": {
+    "class_type": "LTXAddVideoICLoRAGuide",
+    "inputs": {
+      "positive": [
+        "14",
+        0
+      ],
+      "negative": [
+        "14",
+        1
+      ],
+      "vae": [
+        "10",
+        0
+      ],
+      "latent": [
+        "15",
+        0
+      ],
+      "image": [
+        "4",
+        0
+      ],
+      "frame_idx": 0,
+      "strength": 1.0,
+      "latent_downscale_factor": [
+        "7",
+        1
+      ],
+      "crop": "disabled",
+      "use_tiled_encode": false,
+      "tile_size": 256,
+      "tile_overlap": 64,
+      "use_streaming": false,
+      "tile_frames": 97
+    }
+  },
+  "17": {
+    "class_type": "LTXVEmptyLatentAudio",
+    "inputs": {
+      "audio_vae": [
+        "11",
+        0
+      ],
+      "frames_number": [
+        "3",
+        2
+      ],
+      "frame_rate": [
+        "1",
+        3
+      ],
+      "batch_size": 1
+    }
+  },
+  "18": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    },
+    "_meta": {
+      "slots": {
+        "noise_seed": "seed"
+      }
+    }
+  },
+  "19": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": [
+        "8",
+        0
+      ],
+      "positive": [
+        "16",
+        0
+      ],
+      "negative": [
+        "16",
+        1
+      ],
+      "cfg": 1.0
+    }
+  },
+  "20": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler_ancestral"
+    }
+  },
+  "21": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"
+    }
+  },
+  "22": {
+    "class_type": "LTXVConcatAVLatent",
+    "inputs": {
+      "video_latent": [
+        "16",
+        2
+      ],
+      "audio_latent": [
+        "17",
+        0
+      ]
+    }
+  },
+  "23": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "18",
+        0
+      ],
+      "guider": [
+        "19",
+        0
+      ],
+      "sampler": [
+        "20",
+        0
+      ],
+      "sigmas": [
+        "21",
+        0
+      ],
+      "latent_image": [
+        "22",
+        0
+      ]
+    },
+    "_meta": {
+      "progress": true
+    }
+  },
+  "24": {
+    "class_type": "LTXVSeparateAVLatent",
+    "inputs": {
+      "av_latent": [
+        "23",
+        0
+      ]
+    }
+  },
+  "25": {
+    "class_type": "LTXVCropGuides",
+    "inputs": {
+      "positive": [
+        "16",
+        0
+      ],
+      "negative": [
+        "16",
+        1
+      ],
+      "latent": [
+        "24",
+        0
+      ]
+    }
+  },
+  "26": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 128,
+      "temporal_overlap": 32,
+      "vae": [
+        "10",
+        0
+      ],
+      "samples": [
+        "25",
+        2
+      ]
+    }
+  },
+  "27": {
+    "class_type": "PaintAPlate_SavePlate",
+    "inputs": {
+      "images": [
+        "26",
+        0
+      ],
+      "plate": [
+        "1",
+        2
+      ],
+      "filename_prefix": "paintaplate/fluid/plate",
+      "keep_untouched": false
+    },
+    "_meta": {
+      "title": "The fluid plate, in the blank plate's format",
+      "slots": {
+        "filename_prefix": "prefix"
+      },
+      "output": "plate"
+    }
+  },
+  "28": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "26",
+        0
+      ],
+      "fps": [
+        "1",
+        3
+      ],
+      "bit_depth": 8,
+      "color_space": "sRGB",
+      "codec": "none"
+    }
+  },
+  "29": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "format": "auto",
+      "format.codec": "auto",
+      "video": [
+        "28",
+        0
+      ],
+      "filename_prefix": "paintaplate/fluid/preview"
+    },
+    "_meta": {
+      "title": "Fluid shot preview",
+      "slots": {
+        "filename_prefix": "video_prefix"
+      },
+      "output": "video"
+    }
+  }
+}

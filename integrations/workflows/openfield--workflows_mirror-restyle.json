@@ -1,0 +1,522 @@
+{
+  "unet": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "lora": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": [
+        "unet",
+        0
+      ],
+      "lora_name": "ltx-2.3-22b-ic-lora-union-control-ref0.5.safetensors",
+      "strength_model": 1
+    }
+  },
+  "icp": {
+    "class_type": "GetICLoRAParameters",
+    "inputs": {
+      "iclora_model": [
+        "lora",
+        0
+      ]
+    }
+  },
+  "clip": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors",
+      "type": "ltxv"
+    }
+  },
+  "vvae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-video-vae-bf16.safetensors"
+    }
+  },
+  "avae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-audio-vae-bf16.safetensors"
+    }
+  },
+  "pos": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "clip",
+        0
+      ],
+      "text": "The whole scene rendered as a loose watercolor painting on textured paper, soft bleeding washes of color, visible brush strokes and white paper showing through. Same people, same actions and the same camera movement as the source clip."
+    }
+  },
+  "neg": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "clip",
+        0
+      ],
+      "text": "stick figure, skeleton, colored lines, wireframe, blurry, low quality, text, watermark"
+    }
+  },
+  "cond": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "pos",
+        0
+      ],
+      "negative": [
+        "neg",
+        0
+      ],
+      "frame_rate": 24
+    }
+  },
+  "src": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "input_video.mp4",
+      "force_rate": 24,
+      "custom_width": 1280,
+      "custom_height": 704,
+      "frame_load_cap": 121,
+      "skip_first_frames": 0,
+      "select_every_nth": 1
+    }
+  },
+  "ctrlFit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "ctrl",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 1280,
+      "height": 704,
+      "crop": "center"
+    }
+  },
+  "lat": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": 1280,
+      "height": 704,
+      "length": 121,
+      "batch_size": 1
+    }
+  },
+  "guide": {
+    "class_type": "LTXVAddGuide",
+    "inputs": {
+      "positive": [
+        "cond",
+        0
+      ],
+      "negative": [
+        "cond",
+        1
+      ],
+      "vae": [
+        "vvae",
+        0
+      ],
+      "latent": [
+        "ff",
+        0
+      ],
+      "image": [
+        "ctrlFit",
+        0
+      ],
+      "frame_idx": 0,
+      "strength": 0.9,
+      "iclora_parameters": [
+        "icp",
+        0
+      ]
+    }
+  },
+  "latA": {
+    "class_type": "LTXVEmptyLatentAudio",
+    "inputs": {
+      "frames_number": 121,
+      "frame_rate": 24,
+      "batch_size": 1,
+      "audio_vae": [
+        "avae",
+        0
+      ]
+    }
+  },
+  "av": {
+    "class_type": "LTXVConcatAVLatent",
+    "inputs": {
+      "video_latent": [
+        "guide",
+        2
+      ],
+      "audio_latent": [
+        "latA",
+        0
+      ]
+    }
+  },
+  "guider": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": [
+        "lora",
+        0
+      ],
+      "positive": [
+        "guide",
+        0
+      ],
+      "negative": [
+        "guide",
+        1
+      ],
+      "cfg": 1
+    }
+  },
+  "sampler": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler_ancestral"
+    }
+  },
+  "sigmas": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"
+    }
+  },
+  "noise": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    }
+  },
+  "sample": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "noise",
+        0
+      ],
+      "guider": [
+        "guider",
+        0
+      ],
+      "sampler": [
+        "sampler",
+        0
+      ],
+      "sigmas": [
+        "sigmas",
+        0
+      ],
+      "latent_image": [
+        "av",
+        0
+      ]
+    }
+  },
+  "split": {
+    "class_type": "LTXVSeparateAVLatent",
+    "inputs": {
+      "av_latent": [
+        "sample",
+        0
+      ]
+    }
+  },
+  "crop": {
+    "class_type": "LTXVCropGuides",
+    "inputs": {
+      "positive": [
+        "guide",
+        0
+      ],
+      "negative": [
+        "guide",
+        1
+      ],
+      "latent": [
+        "split",
+        0
+      ]
+    }
+  },
+  "decode": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "crop",
+        2
+      ],
+      "vae": [
+        "vvae",
+        0
+      ]
+    }
+  },
+  "video": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "decode",
+        0
+      ],
+      "fps": 24
+    }
+  },
+  "save": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "video",
+        0
+      ],
+      "filename_prefix": "openfield/restyle",
+      "format": "auto",
+      "codec": "auto"
+    }
+  },
+  "ffFit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "e_d",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 1280,
+      "height": 704,
+      "crop": "center"
+    }
+  },
+  "ff": {
+    "class_type": "LTXVImgToVideoInplace",
+    "inputs": {
+      "vae": [
+        "vvae",
+        0
+      ],
+      "image": [
+        "ffFit",
+        0
+      ],
+      "latent": [
+        "lat",
+        0
+      ],
+      "strength": 1,
+      "bypass": false
+    }
+  },
+  "ctrl": {
+    "class_type": "DepthAnythingV2Preprocessor",
+    "inputs": {
+      "image": [
+        "src",
+        0
+      ],
+      "ckpt_name": "depth_anything_v2_vits.pth",
+      "resolution": 512
+    }
+  },
+  "e_u": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "qwen_image_edit_2509_fp8_e4m3fn.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "e_c": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    }
+  },
+  "e_v": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  },
+  "e_norm": {
+    "class_type": "CFGNorm",
+    "inputs": {
+      "model": [
+        "e_ms",
+        0
+      ],
+      "strength": 1
+    }
+  },
+  "e_lora": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": [
+        "e_u",
+        0
+      ],
+      "lora_name": "Qwen-Image-Edit-2509-Lightning-8steps-V1.0-bf16.safetensors",
+      "strength_model": 1
+    }
+  },
+  "e_ms": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": {
+      "model": [
+        "e_lora",
+        0
+      ],
+      "shift": 3
+    }
+  },
+  "e_img1": {
+    "class_type": "ImageFromBatch",
+    "inputs": {
+      "image": [
+        "e_frame0",
+        0
+      ],
+      "batch_index": 0,
+      "length": 1
+    }
+  },
+  "e_s1": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "e_img1",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 1344,
+      "height": 736,
+      "crop": "disabled"
+    }
+  },
+  "e_pos": {
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "inputs": {
+      "clip": [
+        "e_c",
+        0
+      ],
+      "vae": [
+        "e_v",
+        0
+      ],
+      "prompt": "Redraw this entire image as a loose watercolor painting on textured paper, soft bleeding washes of color, visible brush strokes and white paper showing through. Keep the exact composition and framing, every person and their pose, and every object in the same place and at the same size.",
+      "image1": [
+        "e_s1",
+        0
+      ]
+    }
+  },
+  "e_neg": {
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "inputs": {
+      "clip": [
+        "e_c",
+        0
+      ],
+      "vae": [
+        "e_v",
+        0
+      ],
+      "prompt": "",
+      "image1": [
+        "e_s1",
+        0
+      ]
+    }
+  },
+  "e_enc": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": [
+        "e_s1",
+        0
+      ],
+      "vae": [
+        "e_v",
+        0
+      ]
+    }
+  },
+  "e_k": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "e_norm",
+        0
+      ],
+      "positive": [
+        "e_pos",
+        0
+      ],
+      "negative": [
+        "e_neg",
+        0
+      ],
+      "latent_image": [
+        "e_enc",
+        0
+      ],
+      "seed": 42,
+      "steps": 8,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1
+    }
+  },
+  "e_d": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "e_k",
+        0
+      ],
+      "vae": [
+        "e_v",
+        0
+      ]
+    }
+  },
+  "e_frame0": {
+    "class_type": "ImageFromBatch",
+    "inputs": {
+      "image": [
+        "src",
+        0
+      ],
+      "batch_index": 0,
+      "length": 1
+    }
+  },
+  "e_preview": {
+    "class_type": "PreviewImage",
+    "inputs": {
+      "images": [
+        "e_d",
+        0
+      ]
+    }
+  }
+}

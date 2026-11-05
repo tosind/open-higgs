@@ -1,0 +1,63 @@
+{
+  "load": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "input_video.mp4",
+      "force_rate": 0,
+      "custom_width": 0,
+      "custom_height": 0,
+      "frame_load_cap": 0,
+      "skip_first_frames": 0,
+      "select_every_nth": 1
+    }
+  },
+  "um": {
+    "class_type": "UpscaleModelLoader",
+    "inputs": {
+      "model_name": "RealESRGAN_x4plus.pth"
+    }
+  },
+  "up": {
+    "class_type": "ImageUpscaleWithModel",
+    "inputs": {
+      "upscale_model": [
+        "um",
+        0
+      ],
+      "image": [
+        "load",
+        0
+      ]
+    }
+  },
+  "half": {
+    "class_type": "ImageScaleBy",
+    "inputs": {
+      "image": [
+        "up",
+        0
+      ],
+      "upscale_method": "area",
+      "scale_by": 0.5
+    }
+  },
+  "out": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": [
+        "half",
+        0
+      ],
+      "audio": [
+        "load",
+        2
+      ],
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "OpenField_UP",
+      "format": "video/h264-mp4",
+      "pingpong": false,
+      "save_output": true
+    }
+  }
+}

@@ -1,12 +1,17 @@
 {
-  "name": "openfield",
-  "version": "0.1.0",
+  "name": "open-higgs",
+  "version": "0.4.0-alpha.1",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
+    "test": "npm run test:studio && python tests/worker_e2e.py",
+    "test:render": "python tests/render_e2e.py",
+    "format": "prettier --write server/studio.ts server/studio-tools.ts src/pages/Studio.tsx src/pages/StudioControls.tsx src/pages/StudioQueue.tsx src/pages/studio.css src/pages/studio-controls.css src/pages/studio-queue.css tests/studio.test.ts tests/worker-host.ts",
+    "format:check": "prettier --check server/studio.ts server/studio-tools.ts src/pages/Studio.tsx src/pages/StudioControls.tsx src/pages/StudioQueue.tsx src/pages/studio.css src/pages/studio-controls.css src/pages/studio-queue.css tests/studio.test.ts tests/worker-host.ts",
+    "test:studio": "tsx --test tests/studio.test.ts",
     "dev": "concurrently -n server,web -c red,blue \"tsx watch server/index.ts\" \"vite\"",
     "build": "npm run typecheck && vite build",
     "start": "tsx server/index.ts --production",
@@ -37,7 +42,7 @@
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@modelcontextprotocol/sdk": "^1.32.1",
     "@types/three": "^0.186.0",
-    "better-sqlite3": "^11.7.0",
+    "better-sqlite3": "^13.0.3",
     "fastify": "^5.2.0",
     "qrcode-generator": "^2.0.4",
     "react": "^19.0.0",
@@ -54,6 +59,7 @@
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.0",
+    "prettier": "3.9.10",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vite": "^6.4.5"
@@ -62,7 +68,9 @@
     "glob": "14.0.3",
     "minimatch": "11.0.3"
   },
-  "description": "OpenField: an open-source, local-first creative suite (video, image, director, loops) on ComfyUI and the Comfy SDK.",
+  "description": "An open-source AI filmmaking studio with a story canvas, render queue, paid APIs, local ComfyUI and Kaggle twin T4 workers.",
+  "repository": {"type":"git","url":"https://github.com/tosind/open-higgs.git"},
+  "bugs": {"url":"https://github.com/tosind/open-higgs/issues"},
   "license": "MIT",
   "allowScripts": {
     "better-sqlite3@11.10.0": true,

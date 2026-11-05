@@ -1,0 +1,90 @@
+{
+  "load": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "input_video.mp4",
+      "force_rate": 0,
+      "custom_width": 0,
+      "custom_height": 0,
+      "frame_load_cap": 0,
+      "skip_first_frames": 0,
+      "select_every_nth": 1
+    }
+  },
+  "dit": {
+    "class_type": "SeedVR2LoadDiTModel",
+    "inputs": {
+      "model": "seedvr2_ema_3b_fp16.safetensors",
+      "device": "cuda:0",
+      "blocks_to_swap": 0,
+      "swap_io_components": false,
+      "offload_device": "cpu",
+      "cache_model": false,
+      "attention_mode": "sdpa"
+    }
+  },
+  "vae": {
+    "class_type": "SeedVR2LoadVAEModel",
+    "inputs": {
+      "model": "ema_vae_fp16.safetensors",
+      "device": "cuda:0",
+      "encode_tiled": true,
+      "encode_tile_size": 512,
+      "encode_tile_overlap": 64,
+      "decode_tiled": true,
+      "decode_tile_size": 512,
+      "decode_tile_overlap": 64,
+      "tile_debug": "false",
+      "offload_device": "cpu",
+      "cache_model": false
+    }
+  },
+  "redraw": {
+    "class_type": "SeedVR2VideoUpscaler",
+    "inputs": {
+      "image": [
+        "load",
+        0
+      ],
+      "dit": [
+        "dit",
+        0
+      ],
+      "vae": [
+        "vae",
+        0
+      ],
+      "seed": 42,
+      "resolution": 1034,
+      "max_resolution": 1920,
+      "batch_size": 25,
+      "uniform_batch_size": false,
+      "color_correction": "lab",
+      "temporal_overlap": 2,
+      "prepend_frames": 0,
+      "input_noise_scale": 0,
+      "latent_noise_scale": 0,
+      "offload_device": "cpu",
+      "enable_debug": false
+    }
+  },
+  "out": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": [
+        "redraw",
+        0
+      ],
+      "audio": [
+        "load",
+        2
+      ],
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "OpenField_UP",
+      "format": "video/h264-mp4",
+      "pingpong": false,
+      "save_output": true
+    }
+  }
+}

@@ -1,0 +1,251 @@
+{
+  "u": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "qwen_image_fp8_e4m3fn.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "c": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    }
+  },
+  "v": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  },
+  "pos": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "c",
+        0
+      ],
+      "text": "A lighthouse keeper on a stormy pier. Medium close-up, 35mm lens, low angle. Hard side light from a single lamp, deep shadows. Shot on Kodak Vision3 500T, fine grain, 1970s, teal and amber grade."
+    }
+  },
+  "neg": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "c",
+        0
+      ],
+      "text": ""
+    }
+  },
+  "lat": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": 1328,
+      "height": 752,
+      "batch_size": 1
+    }
+  },
+  "k": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "u",
+        0
+      ],
+      "positive": [
+        "pos",
+        0
+      ],
+      "negative": [
+        "neg",
+        0
+      ],
+      "latent_image": [
+        "lat",
+        0
+      ],
+      "seed": 42,
+      "steps": 50,
+      "cfg": 2.5,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1
+    }
+  },
+  "d": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "k",
+        0
+      ],
+      "vae": [
+        "v",
+        0
+      ]
+    }
+  },
+  "save": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "eraGradeRgb",
+        0
+      ],
+      "filename_prefix": "OpenField_still"
+    }
+  },
+  "eraGradeF0": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.93
+    }
+  },
+  "eraGradeF1": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.924
+    }
+  },
+  "eraGradeF2": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.082
+    }
+  },
+  "eraGradeF3": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.041
+    }
+  },
+  "eraGradeF4": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.019
+    }
+  },
+  "eraGradeF5": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.014
+    }
+  },
+  "eraGradeF6": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 1.049
+    }
+  },
+  "eraGradeF7": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.973
+    }
+  },
+  "eraGradeF8": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.89
+    }
+  },
+  "eraGradeF9": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.073
+    }
+  },
+  "eraGradeF10": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.245
+    }
+  },
+  "eraGradeF11": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 0.265
+    }
+  },
+  "eraGradeF12": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 1
+    }
+  },
+  "eraGrade": {
+    "class_type": "GLSLShader",
+    "inputs": {
+      "fragment_shader": "#version 300 es\nprecision highp float;\nuniform sampler2D u_image0;\nuniform vec2 u_resolution;\nuniform float u_float0;  // saturation\nuniform float u_float1;  // contrast\nuniform float u_float2;  // fade (black lift)\nuniform float u_float3;  // lift r\nuniform float u_float4;  // lift g\nuniform float u_float5;  // lift b\nuniform float u_float6;  // gain r\nuniform float u_float7;  // gain g\nuniform float u_float8;  // gain b\nuniform float u_float9;  // grain\nuniform float u_float10; // bloom\nuniform float u_float11; // vignette\nuniform float u_float12; // amount (0 = untouched, 1 = full grade)\nin vec2 v_texCoord;\nlayout(location = 0) out vec4 fragColor0;\n\nfloat hash(vec3 p) {\n  p = fract(p * 0.1031);\n  p += dot(p, p.zyx + 31.32);\n  return fract((p.x + p.y) * p.z);\n}\n\nvoid main() {\n  vec2 uv = v_texCoord;\n  vec3 src = texture(u_image0, uv).rgb;\n  vec3 c = src;\n\n  // Bloom: highlights spread through a 16-tap ring at two radii.\n  if (u_float10 > 0.0) {\n    vec2 px = 1.0 / u_resolution;\n    float r = max(u_resolution.x, u_resolution.y) * 0.012;\n    vec3 acc = vec3(0.0);\n    for (int i = 0; i < 16; i++) {\n      float a = float(i) * 0.3927;\n      float rr = (i % 2 == 0) ? r : r * 2.2;\n      vec3 s = texture(u_image0, uv + vec2(cos(a), sin(a)) * rr * px).rgb;\n      acc += max(s - 0.55, 0.0);\n    }\n    c += acc / 16.0 * u_float10 * 2.2;\n  }\n\n  float l = dot(c, vec3(0.2126, 0.7152, 0.0722));\n  c = mix(vec3(l), c, u_float0);\n  c = (c - 0.5) * u_float1 + 0.5;\n\n  // Split tone: lift adds color into the shadows, gain multiplies the highlights.\n  float w = smoothstep(0.0, 1.0, clamp(l, 0.0, 1.0));\n  c += vec3(u_float3, u_float4, u_float5) * (1.0 - w);\n  c *= mix(vec3(1.0), vec3(u_float6, u_float7, u_float8), w);\n\n  // Fade: blacks lift, whites roll off a little, like an old print.\n  c = mix(vec3(u_float2), vec3(1.0 - u_float2 * 0.35), clamp(c, 0.0, 1.0));\n\n  vec2 d = uv - 0.5;\n  c *= 1.0 - u_float11 * dot(d, d) * 1.6;\n\n  float n = hash(vec3(uv * u_resolution, dot(src, vec3(97.0, 131.0, 173.0)))) - 0.5;\n  c += n * u_float9 * (1.2 - abs(l - 0.5));\n\n  fragColor0 = vec4(clamp(mix(src, c, u_float12), 0.0, 1.0), 1.0);\n}\n",
+      "size_mode": "from_input",
+      "images.image0": [
+        "d",
+        0
+      ],
+      "floats.u_float0": [
+        "eraGradeF0",
+        0
+      ],
+      "floats.u_float1": [
+        "eraGradeF1",
+        0
+      ],
+      "floats.u_float2": [
+        "eraGradeF2",
+        0
+      ],
+      "floats.u_float3": [
+        "eraGradeF3",
+        0
+      ],
+      "floats.u_float4": [
+        "eraGradeF4",
+        0
+      ],
+      "floats.u_float5": [
+        "eraGradeF5",
+        0
+      ],
+      "floats.u_float6": [
+        "eraGradeF6",
+        0
+      ],
+      "floats.u_float7": [
+        "eraGradeF7",
+        0
+      ],
+      "floats.u_float8": [
+        "eraGradeF8",
+        0
+      ],
+      "floats.u_float9": [
+        "eraGradeF9",
+        0
+      ],
+      "floats.u_float10": [
+        "eraGradeF10",
+        0
+      ],
+      "floats.u_float11": [
+        "eraGradeF11",
+        0
+      ],
+      "floats.u_float12": [
+        "eraGradeF12",
+        0
+      ]
+    }
+  },
+  "eraGradeRgb": {
+    "class_type": "SplitImageWithAlpha",
+    "inputs": {
+      "image": [
+        "eraGrade",
+        0
+      ]
+    }
+  }
+}

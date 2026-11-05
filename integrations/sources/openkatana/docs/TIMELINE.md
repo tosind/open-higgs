@@ -1,0 +1,683 @@
+# Supported timeline contract
+
+This contract defines supported project fields. Unknown fields are rejected.
+Extend it only alongside an implementation and relevant regression tests.
+
+Example after preparing a 640x360, 30-fps, 90-frame source into `frames/`:
+
+```json
+{
+  "canvas": {"w": 640, "h": 360, "fps": 60, "frames": 120, "bg": "#000000"},
+  "clips": {
+    "A": {"frames_dir": "frames", "pattern": "%05d.png", "n": 90, "fps": 30, "w": 640, "h": 360}
+  },
+  "shots": [
+    {"f0": 0, "f1": 60, "clip": "A", "src": 0, "speed": 1},
+    {"f0": 60, "f1": 120, "clip": "A", "src": 1, "speed": 0.5}
+  ]
+}
+```
+
+Paths are relative to the timeline file's folder and must remain inside it.
+Sequences start at zero and use `%05d.png` or `%05d.jpg`. All declared frames must
+exist. Supply real source dimensions, count and rate from preparation.
+The renderer is 8-bit SDR. Preparation rejects HDR transfer tags and nonzero
+rotation metadata until an explicit conversion is supplied; it does not silently
+retag HDR or report unrotated dimensions for an auto-rotated source.
+
+| Area | Supported fields |
+|---|---|
+| Canvas | `w`, `h` (up to 7680), `fps`, `frames`, optional `bg` (default `#ffffff`), `boil` (default 2 output frames) |
+| Shots | `f0`, exclusive `f1`, `clip`, `src` seconds OR `srcf`, `speed`, `speed1`, `blend`, `loop`, `cam`, `bg`, `fx`, `in`, `out`, `layers`, `face`, `look`, `transition` (two-shot, see below), `special` (whole-frame insert instead of `clip`) |
+| Camera | `fit` (cover/contain/width/height), `z`, `ax`, `ay`, `sx`, `sy`, `rot` radians, `mir`, `zoom`, `push`, `punch`, `ladder`, `pan`, `tilt`, `roll`, `handheld`, `shake`, `cover`, `crop`; face-lock fields below |
+| Animated zoom | `z0` (1), `z1` (1.08), `ease` (out3; lin/in2/in3/out2/out3/inout/inout3/outback) |
+| Fonts | Array of `{family,url,weight?,style?}` pointing to local font files |
+| Text | `font`, `caption`, `word`, or `graffiti` events; see below |
+| Faces | Clip `faces` JSON, optional `faces_size`; shot `face.box` or `face:false` |
+| Mattes | Clip `mask_dir`: same-count, same-size alpha PNG frames |
+| Audio | `{src,mode:"copy"}`, `{mode:"mix",tracks:[...]}` (see expansion), or omit for silence |
+| Overlays | `overlays`: clip plates and adjustment layers stacked over the finished frame; see Overlays below |
+
+Canonical colors are six-digit hex (`rgba(r,g,b,a)` where a field allows
+transparency: tint, text fills); the native forms below are converted first. Text `pos` is a normalized two-coordinate array; font
+size is in canvas pixels. Text baseline is centered vertically. Font loading
+failure is an error. Typography fixtures use the same supplied font on both sides;
+the comparison does not establish matching layout for every font or writing system.
+
+Shots must be ordered, contiguous, nonoverlapping and cover exactly the canvas
+frame count. Sampling uses frame centers. Linear speed ramps integrate speed
+over elapsed time. `speed:0` freezes. Negative speed runs backward. `loop` accepts
+clamp, loop or pingpong. Default slow-motion blending applies at absolute speed
+0.3 through less than 1; explicit `blend:true` also permits slower blending.
+This blends pictures; it does not create optical-flow motion between duplicates.
+Frame-based `srcf` in-points sit 0.1 microseconds inside their frame, matching the
+observed reference boundary convention. Positive-speed blending does not use a
+frame before the integer in-point. A reversing ramp can therefore switch to a
+whole frame while returning toward its in-point; this is measured reference behavior.
+
+## Native syntax
+
+`validate`/`render` first rewrite these authoring forms into the canonical contract
+(`openkatana/native.py`); the saved timeline keeps what you wrote, and Studio edits
+the canonical form.
+
+| Form | Meaning |
+|---|---|
+| `t0`/`t1` on shots, text and specials | Seconds, `"f59"` (frame start 59/fps) or `"b8"`/`"b10.75"` beats on the top-level `"beat": {"bpm", "t0"}` grid. A time maps to the first frame whose centre is at or after it: `f = ceil(t*fps - 0.5)`. A shot's `t1` defaults to the next shot's start (or the end). Use `t0/t1` or `f0/f1`, not both. Times that leave a gap or overlap between shots are rejected. |
+| Colours | `"#rrggbb"`, `"rgb(...)"`, `"rgba(...)"`, `[r,g,b]`, `[r,g,b,a]`, or `"$name"` from `"palette": {...}`. Default palette: `ink #0b0b0b`, `accent #b6ff1f`, `accent2 #6fd600`, `lav #c98be0`, `magenta #ff2bd6`, `magenta2 #7a2bff`. Translucent colours are accepted only where a field supports alpha; tint replaces the colour's alpha with `v`. |
+| Looks | A string is a preset (`clean`, `bw`, `kawaii`, `duo`, `neg`, `x` = xerox + accent key, `xl` = x with black 0 / white 0.5, and the 13 studio looks), a type (`"threshold"`) or a name from `"looks": {...}`; `{"preset": "duo", "grit": 0}` overrides a preset. Duotone paper defaults to `$accent`. |
+| Animated numbers (looks only) | `{"from", "to", "ease": lin/in2/in3/out2/out3/inout/outback, "over": 1, "at": 0}`: progress over `over` x shot duration starting `at` seconds in. Animated values in `fx` are rejected. |
+| `fx` numbers | `"fx": {"tint": 0.4}` means `{"v": 0.4}`. |
+| Shot `seed` / `note` | `seed` becomes the default `seed` of the shot's seeded effects (grain, dust, leak, glitch, wipe, particles, burst, handheld); `note` is free text and dropped. |
+| `xerox` `grain_every` | Frames per grit noise step (default 1). |
+| `xerox` `key` | Accent key: `true` or {`channel` g, `lo` .06, `width` .09, `vmin` .16, `vw` .16} (channel dominance x value gate) or {`hue` [h0, h1] degrees, `soft` 15, `sat` .25, `val` .16}; keyed pixels (strength x `amt` above 0.5, randomised by `stoch` .8) become `dark` [10,38,0] -> `light` [196,255,52] by tone `(1-mix)*c + mix*step(c)`, `c = (luma + lift .12) * gain 1.1`, `mix` .4. The tone uses deterministic per-pixel dithering. |
+
+### Source effects
+
+`fx.stutter {n: 3, step: 1}` loops `n` source frames from the in-point, `step`
+frames apart, one per output frame regardless of speed (in-point 4, step 2:
+4, 6, 8, 4, ...). `fx.trail {n: 3, step: 2, alpha: .35, op}` draws the `n` earlier
+source frames (`step` apart, clamped at the clip start; also on freezes) over the
+plate before the look, oldest first, ghost `j` at `alpha * (1 - (j-1)/(n+1))`.
+
+### Specials (whole-frame inserts)
+
+Use `"special": {...}` instead of `clip` on a shot (or clip keywords `FLASH`, `WHITE`,
+`BLACK`, `COLLAGE`), or top-level `"specials": [{t0|f0, t1|f1|n|d, type, ...}]`
+which override the shots beneath them (in time order, no overlap).
+
+| Type | Fields (defaults) |
+|---|---|
+| `flash` | `color` ($accent), `splat` (true = $ink splats; false; or a colour), `bigsplat` |
+| `white` | `color` (#ffffff), `splat` |
+| `black` | `color` (#000000), `sparkle` (true) |
+| `color` | `color` (required) |
+| `collage` | `bg` (#ffffff), `panels` [{`clip`, `src`/`srcf`, `speed`, `loop`, `blend`, `rect` [x,y,w,h] 0..1, `cam`}], `brackets` (true), `lines` [[[x,y]..]], `look` |
+
+All take `allow` (subset of text, stickers, dust, border; defaults per type: flash text+border, white stickers+text+dust+border, black border, color
+text+stickers, collage stickers+text+dust+border) — OpenKatana draws global text
+and dust; it has no stickers or border layer. A collage panel shows the full-frame
+camera image of its clip clipped to the panel rectangle (measured reference
+behaviour). Splats, sparkles and brackets are OpenKatana's own designs.
+
+## Camera movement
+
+Camera objects merge shallowly in the order top-level `cam`, clip `cam`, shot `cam`.
+The shot replaces a whole effect object, not just individual parameters. The
+merged camera's effect wins over the same effect in `fx`; `false` disables it.
+Effects accept explicit objects, `true` for defaults, or `false`. Numeric shorthand
+and string-valued effects are not supported in this contract.
+
+| Effect | Parameters and defaults |
+|---|---|
+| `push` | `v` or `rate`: 0.1 scale growth per second |
+| `punch` | `v` or `amt`: 0.07; `d`: 0.25 seconds; `curve`: 2; `at`: 0 or `hits`: array of shot-relative seconds |
+| `ladder` | `steps` or `v`: array of positive scales, default `[1,1.12,1.24,1.36]` |
+| `pan` | `dx` or `v`: 0 widths per second; `dy`: 0 heights per second |
+| `tilt` | `v`: 0 heights per second |
+| `roll` | `v`: 0 radians; `rate`: 0 radians per second |
+| `handheld` | `amp` or `v`: 6 canvas pixels (y uses 0.8x); `hz`: 0.7; `rot`: 0.004 radians; integer `seed`: 7 |
+| `shake` | `amp`: `[16,12]` canvas pixels; `d`: 0.25 seconds (0.125 if the shot starts at speed 0); `at`: 0 or `hits`: seconds array; `every`: canvas boil |
+
+Overlapping punches use the largest active impulse. Camera operations run in
+zoom, push, punch, ladder, pan, tilt, roll, handheld, shake order. Mirroring reflects the completed
+camera image, including horizontal drift, rotation and off-center screen placement.
+Shake uses absolute output-frame blocks, a linear decay and the strongest active
+hit. A shot starting at zero speed keeps the shorter default decay even if it ramps
+into motion. The noise is deterministic when frames are visited in any order.
+Handheld uses smooth deterministic drift at absolute frame-center time, so cuts,
+source freezes and reverse playback do not reset its phase. `hz:0` holds a fixed
+offset; zero `amp` suppresses translation while `rot` remains independent.
+
+`cover:true` enlarges and shifts the camera to keep the outer plate bounds covered
+after rotation, pan and shake. `crop:[x,y]`, or a bare y coordinate, chooses a source
+anchor and enables coverage. Coverage may cancel movement when no overscan is
+available. `fit:cover` alone is only the initial fit and does not enable this correction.
+Bars already present inside source pictures remain picture content.
+
+```json
+"cam": {"z":1.15,"cover":true,"shake":{"hits":[0,0.4],"amp":[10,8],"d":0.2}}
+```
+
+### Face-locked cameras
+
+Select `cam.type:"facelock"` or `cam.lock:true`. Put its options directly in `cam`;
+`cam.facelock` and `fx.facelock` are unsupported. The camera uses the clip's supplied,
+smoothed face track at the selected source frame, including retiming and looping.
+
+| Field | Default and meaning |
+|---|---|
+| `ld` | 0.12: desired eye distance as a fraction of output width |
+| `lx`, `ly` | 0.5, 0.4: target eye midpoint in normalized output coordinates |
+| `z0`, `z1` | 1, 1.04: zoom multiplier with out3 easing across the shot |
+| `kick`, `kick_rate` | 0.035, 14: initial zoom impulse and exponential decay rate |
+| `lockRot` | 1: roll correction strength, from 0 to 1 |
+| `cover` | true: hide source edges; explicit false allows borders |
+
+Face lock establishes the base scale, roll, anchor and target before other camera
+effects. Base `z`, `rot`, `ax/ay`, `sx/sy` and `crop` do not override that locked
+framing. Coverage can shift the face away from its requested position when the
+source lacks enough margin. Mirroring applies to the completed camera.
+
+`shot.face` overrides and `face:false` affect face-anchored graphics, not the camera's
+clip track. Box-only track entries use inferred eye positions. No face detection is
+performed. OpenKatana rejects face
+lock without a supplied usable track, or with coincident eye coordinates, before
+opening the renderer. This prevents a requested lock from silently becoming an
+ordinary camera. A manual shot box alone cannot satisfy the track requirement.
+
+```json
+"cam": {"type":"facelock","ld":0.2,"ly":0.42,"handheld":{"amp":2,"rot":0.001}}
+```
+
+## Transitions and compositing
+
+Use `fx` on a shot or top-level `post` for defaults on every shot. Shot `fx` replaces
+the same global effect object; `false` disables it. Colors are six-digit hex.
+
+| Effect | Parameters and defaults |
+|---|---|
+| `white` | `at`: 0; `d`: 0.067; `color`: white; `side`: in |
+| `flash` | `at`: 0; `d`: 0.1; `color`: white; `amt`: 1; `side`: in |
+| `dip` | `d`: 0.15; `color`: black; `side`: in |
+| `tint` | `color`: `#ff78dc`; `v` or `amt`: 0.3; `op`: screen; optional `d` fades to zero |
+| `invert` | `at`: 0; optional `d`, otherwise shot duration; `amt`: 1 |
+| `strobe` | `every`: 2 output frames; `color`: white; `amt`: 1; optional `at`, `d` |
+| `letterbox` | `top`, `bottom`, or `v`: 0.1 of canvas height; `color`: black |
+
+An outgoing transition starts at shot duration minus `d` unless `at` is supplied (`at` is accepted on every
+transition-type effect: white, flash, mosaic, blur, flashlight, glitch, magenta, wipe). Intro/outro shorthand accepts a string, object or array:
+`"in":{"type":"flash","d":0.2}`. It replaces the corresponding `fx` entry.
+If both `in` and `out` use the same effect name, `out` wins, as in the reference — except blur and flashlight,
+which map to different effects per side (blurIn/blurOut, fin/fout), so both apply.
+To keep both, use repeated layers:
+
+```json
+"layers": [
+  {"type":"dip","side":"in","d":0.2},
+  {"type":"dip","side":"out","d":0.3}
+]
+```
+
+Layers support the seven compositing effects above, every expanded effect (EXPANSION.md), text, graffiti,
+outline, cutout and declared hook layers. Compositing effects default to `post`, text/graffiti to `over`,
+and outline/cutout to `subject`;
+default order is `100 + array index`. Optional `phase` chooses `back`, `subject`,
+`over`, `post`, or `final`; `order` sorts within that phase. Equal orders preserve
+insertion order. The plate is drawn before all phases, and global text is at
+`over:60`. Phase names do not add subject masks automatically in this subset.
+Built-in `fx` order is invert 16, tint 51, white 60, flash 61, dip 62, strobe 63,
+letterbox 70, all in `post`. The current comparison exercises screen and multiply
+tint blending; other accepted Canvas blend modes have not received parity fixtures.
+
+### Two-shot transitions
+
+`in`/`out` above affect one shot. To blend two shots, put `transition` on the
+**incoming** shot (index 1 or later):
+
+```json
+{"f0":30,"f1":60,"clip":"B","transition":{"type":"push","d":0.4,"dir":"left"}}
+```
+
+Both shots run their full pipelines (camera, look, effects, layers) inside a frame
+window around the cut. The outgoing shot keeps playing past its `f1` and the
+incoming shot pre-rolls before its `f0` with their own timing, so give them handle
+frames (`loop`/clamp rules apply at the clip ends). Global `text` is drawn once over
+the composite and does not move with pushes or slides.
+
+Window: `n = max(2, round(d * fps))` frames; `align` `center` (default) starts at
+`f0 - floor(n/2)`, `start` at `f0`, `end` at `f0 - n`. `flash` has no `d`: it spans
+`pre_frames` before the cut, `peak_frames`, then an exponential tail of
+`ceil(tau * ln(1/cutoff) * fps)` frames. The window must lie inside both shots and
+must not overlap the previous transition; otherwise validation names the frames.
+Unknown parameters and choices are rejected.
+
+| Type | Seconds | Parameters (defaults) |
+|---|---|---|
+| `dissolve` | 0.5 | `curve` (linear; any ease) |
+| `fade`, `dip` | 0.52, 0.44 | `color` (#000000), `out`/`hold`/`in` proportions, `mode` dip, in, out |
+| `flash` | window rule | `color` (#ffffff), `mode` solid, add, screen, exposure, black, invert; `pre_frames` 0, `pre` [0.35, 0.65], `peak_frames` 1, `tau` 0.06, `cutoff` 0.05 |
+| `glitch` | 0.3 | `streaks` vertical/horizontal, `split` 0.5, `intensity` 0.8, `seed` |
+| `lens` | 0.43 | `mode` bulge, pinch, twirl, barrel, pincushion; `split` 0.46, `strength` 0.6, `center`, `radius` 1, `chroma` 0.04, `vignette` 0.25 |
+| `light_leak` | 0.7 | `anchor` left/right/top/bottom/center, `palette` amber/rose/teal/white, `peak` 1.3, `size` 0.95, `blend` add/screen, `split` 0.45, `seed` |
+| `liquid` | 0.6 | `mode` blob/melt, `wobble` 0.04, `rim_width` 0.015, `rim_glow` 0.7, `rim_color`, `softness` 0.06, `ease` outCubic, `seed` |
+| `luma` | 0.6 | `source` A/B/noise, `order` dark_first/light_first, `softness` 0.08, `noise` 0.15, `seed` |
+| `pixel_sort` | 0.37 | `axis` x/y, `dir` down/up, `mask` bright/dark/all, `split` 0.5, `work_res` 540 |
+| `push` | 0.4 | `dir` left/right/up/down, `ease` inOutCubic, `shutter` 0.5, `divider_width` 0, `divider_color` |
+| `slide` | 0.4 | `dir`, `ease`, `shutter` 0.5, `reveal` false (true: A slides away over B) |
+| `spin` | 0.5 | `dir` cw/ccw, `out_angle` 120, `in_angle` -120, `scale` 1.4, `center`, `split` 0.4, `shutter` 0.75 |
+| `whip` | 0.3 | `dir`, `split` 0.5, `travel` 1.2, `shutter` 0.7, `blur_max` 0.4 |
+| `wipe` | 0.5 | `shape` linear, circle, diamond, box, star, clock, barn, strips; `dir` rtl/ltr/ttb/btt (linear), `feather` 0.02, `ease`, `mode` open/close, `center`, `count` 7, `stagger` 0.5 (strips) |
+| `zoom` | 0.4 | `mode` through/punch, `out_scale` 3, `in_scale` 0.55, `center`, `split` 0.55, `shutter` 0.5 |
+| `datamosh` | 0.5 | `block` 16, `drift` 0.08, `split` 0, `seed` — an approximation: blocks of A drift and refresh to B; there are no codec motion vectors |
+
+Eases: linear, inQuad, outQuad, inOutQuad, inCubic, outCubic, inOutCubic, inExpo,
+outExpo, inOutExpo, inOutSine. `get_capabilities` returns this vocabulary as
+`shot_transitions` (defaults, choices, numeric ranges). The frame trace marks
+transition frames with `{"transition":{"type","p"}}`.
+
+## Studio looks, effects and camera moves
+
+A look may be `{"type": "studio", "grade": {...}, "fx": [{"type": ...}, ...]}` (applied to the plate, before
+graphics), or one of 13 named presets: `clean_luxe`, `cold_concrete`, `dreamy_bloom`, `film_print`, `golden_hour`, `gritty_contrast`, `home_tape`, `mono_noir`, `neon_night`, `pastel_fade`, `silver_bleach`, `teal_orange`, `vivid_pop`.
+`get_capabilities().studio_looks` lists every parameter range.
+
+Grade (in this order): `auto` (auto levels 0..1), `mult` [r,g,b], `temp`/`tint` (-1..1, linear light), `exposure`
+(stops), `mono`, `sat`, `contrast` (about mid grey), `gamma` (v^gamma), `black` (crush), `split`
+[[shadow r,g,b], [highlight r,g,b], strength] (0.5 = neutral), then `fade` (lift) and `gain`.
+
+Every effect takes `amt` (0..1 mix with the picture underneath).
+
+| Effect | Parameters |
+|---|---|
+| `bleach` | `a` |
+| `bloom` | `thr`, `r`, `strength` |
+| `blur` | `r` |
+| `chroma` | `px`, `vertical` |
+| `clarity` | `amount`, `radius` |
+| `contour_glow` | `color`, `radius`, `strength`, `inner`, `blend` |
+| `datamosh` | `block`, `drift`, `share`, `seed` |
+| `defocus` | `amount`, `highlights` |
+| `dirblur` | `len`, `angle` |
+| `duotone` | `shadows`, `highlights`, `amount` |
+| `exposure` | `ev` |
+| `film_overlay` | `level`, `grain`, `dust`, `scratch`, `flicker`, `weave`, `seed` |
+| `glow` | `threshold`, `knee`, `radii`, `weights`, `strength`, `tint`, `blend` |
+| `grain` | `sigma`, `size`, `mono`, `seed` |
+| `invert` | (none) |
+| `lens_warp` | `mode`, `strength`, `center`, `radius`, `dir`, `chroma`, `vignette` |
+| `light_leak` | `anchor`, `palette`, `peak`, `size`, `blend`, `seed` |
+| `pixel_art` | `block`, `colors`, `dither`, `strength` |
+| `pixel_sort` | `mask`, `lo`, `axis`, `dir`, `work_res` |
+| `pixelate` | `size` |
+| `posterize` | `levels`, `mode` |
+| `rgb_split` | `px`, `angle` |
+| `saturation` | `sat`, `hue` |
+| `shake` | `px`, `seed` |
+| `smear` | `len`, `angle`, `px`, `sat` |
+| `tape` | `res`, `vres`, `chroma_shift`, `depth`, `noise`, `head`, `seed` |
+| `vignette` | `amount`, `feather`, `center` |
+| `zoomblur` | `amount`, `cx`, `cy`, `n` |
+
+`contour_glow` needs a clip `mask_dir`. `datamosh` is an approximation (blocks drift over the shot; no codec
+motion vectors).
+
+Camera additions: `crash` {v, d, at, ease, center} (fast zoom toward a screen point, landing `at` seconds into the
+shot), `pulse` {v, d, hits, center} (zoom in and back out on each hit), eased `roll` {from, to, ease, d}
+(radians), easing `inout3`, and `shutter` (0..1 of a frame: camera motion blur from averaged sub-frame samples).
+Studio move names on a shot camera are rewritten to these keys: `zoom.crash` {scale, dur, at, ease, center,
+blur_shutter}, `zoom.punch` {times, scale, release, mode: bounce}, `zoom.in_out` {times, scale, center},
+`shake.beat` {times, profile: impact|heavy|micro, amp}, `drift` {dx, dy (share of the frame over the shot), zoom, rot
+(degrees), ease}, `handheld` {profile: calm|walk|chaos}, `roll` {angle: [from, to] degrees, dir, ease}. `times`
+is a list of seconds or `beats`, `downbeats`, `1/2`, `1/8`, `offbeat`, `snare` on the top-level `beat` grid (use the
+BPM and phase from `analyze_audio`). Studio eases are named `linear`, `inQuad`, `outQuad`, `inOutQuad`, `inCubic`,
+`outCubic`, `inOutCubic`, `outBack`.
+
+## Stickers
+
+Top-level `assets` and `stickers` provide placement, pop-in, shadow and die-cut drawing:
+
+```json
+"assets": {"stickers": ["stickers/s01.png", "stickers/s02.png"],
+           "cutouts": [{"clip": "A", "t": 0.3}], "cutout_border": 10, "cutout_border_color": "#ffffff"},
+"stickers": [{"t0": 0.8, "t1": 1.6, "kind": "graphic", "n": 3, "mode": "burst", "step": 0.1,
+              "slots": [[0.15, 0.2], [0.85, 0.2], [0.85, 0.8]], "size": [120, 180], "rot": 0.2, "shadow": true}]
+```
+
+`assets.stickers` may also be `{"dir", "n", "pattern", "start"}`. A cut-out is the clip's subject at time `t` (or
+source frame `f`) through its matte (`mask_dir`, from `analyze_clip masks`) with a border. Events: `kind` graphic |
+cutout, `n` (1..24), `mode` hold (all at `t0`) | burst (one every `step` seconds; default a 1/16 note on the `beat`
+grid, else 0.1 s), `ids` (1-based picks), `size` [min, max] px, `slots` (else positions are chosen away from the
+frame centre, the `avoid` boxes and each other), `avoid` [[x0, y0, x1, y1]], `rot` (radians, random range), `shadow`
+(hard offset shadow), `seed`. They draw in the over phase (order 50); `fx.stickers: false` hides them on a shot and
+specials show them when their allow list contains `stickers` (white, colour, collage).
+
+## Authoring aliases
+
+- Text `font`: CSS shorthand `"[style] [weight] {S}px \"Family\""` (`{S}` or `{size}` = the item's `size`, or a px
+  number); sets `style`, `weight`, `size` and `family` (a declared font).
+- Top-level `font_stacks` `{kind: "CSS stack"}`: a text item without `family` takes the first declared family of the
+  stack for its `kind` (else `sans`). `kind` heavy = italic 900, thin = upright 300.
+- Text `on_specials` (default true): false hides the event on special frames.
+- Text `sfx`: a sound-effect cue at the event start (an OpenKatana synthesised sound, see `list_sfx`).
+- Top-level `sfx` `{"cues": [...]}`: cues added to `audio.cues`; `auto` / `hits` true is rejected (no automatic
+  placement).
+- Top-level `audio_tracks` `[{asset_id | src, start, duration, at, speed, gain_db, fade_in, fade_out}]` becomes
+  `audio: {"mode": "mix", "tracks": [...]}` (`gain_db` -> `volume`); `[]` is silence; not together with `audio`.
+- `custom_text_types` declares hook text types (needs `hooks.src`, see Project hooks).
+
+## Decorative and face graphics
+
+Shot `fx` entries, timeline `post` entries or shot layers use the names, parameters, phases and
+orders below. The renderer is `web/decor.js`. Eye units are the tracked eye distance; face points sit in
+the face's rotated frame (mouth and nose are estimated from the eyes). `word`, `type` and `tag` need a declared font
+(`family`, or `font_stacks`).
+
+| Layer (phase:order) | Parameters | What it draws |
+|---|---|---|
+| `stairs` (back:30) | `seed`, `size` px, `cells` [[col,row]], `x`, `y`, `color`, `color2` | pixel squares around (x, y), re-drawn every 4 frames with ~12% dropped |
+| `glow` (subject:90) | `amt` / `v`, `blur` px | screen-blended blurred copy of the frame so far |
+| `glint` (over:25) | `at`, `d`, `from`, `to` (0..1, or source px with `src`), `r`, `color` | 4-point star with white core and rays sweeping from -> to, then holding |
+| `doodles` (over:30) | `v` 0..3 (0/5/10/16 marks), `n`, `scratch`, `mono`, `types`, `seed`, `color` | ink marks on a ring around the face (or centre) |
+| `face_doodles` (over:40) | `items` [{t, o:[x,y] eye units, s, r, at}] or `n` + `pool`, `seed`, `colors` | kawaii shapes pinned around the face, popping in |
+| `doodle` (over:41) | `t`, `pos`, `size`, `rot`, `at`, `seed`, `alpha`, `colors` | one kawaii shape |
+| `word` (over:57) | `text` / `v`, `at`, `dx`, `dy`, `k`, `min`, `max`, `fill`, `stroke`, `lw`, `shadow`, font keys | outlined word under the face (0, 1.7 eye units) with a 3-frame pop; (0.5W, 0.6H) without a face |
+| `type` (over:59) | `parts` / `text`, `at`, `dt`, `base`, `dx`, `dy`, `k`, `min`, `max`, `pos`, `fill`, `stroke`, `shadow`, font keys | typewriter reveal under the face (0, 2.1 eye units) |
+| `slash` (over:58) | `at`, `dx`, `dy`, `n` (4), `seed`, `fill`, `stroke` | tapered slashes growing from a face point or the centre |
+| `sparkle` (over:45) | `pos`, `r`, `seed`, `color` | outlined 4-point sparkle with ink dots |
+| `splat` (over:45) | `items` or `pos`, `r`, `n`, `seed`, `color`, `color2` | paint splat with droplets |
+| `bw` (post:20) | `filter` (CSS filter functions), `bars` [top, bottom] px, `color` | re-filters the whole frame, optional bars |
+| `tag` (post:40) | `text` / `v`, `pos` (bottom / face), `bx`, `by`, `dx`, `size`, `fill`, font keys | small handle text with a dark shadow |
+| `border` (final:30) | `color`, `seed` | hand-inked ragged frame edge |
+| `cheeks` (over:20) | `color`, `force` | zigzags under the eyes (skipped below 30 px eye distance unless `force`) |
+| `fangs` (over:21) | `color`, `len` (x mouth width), `dy`, `force` | two fangs from the estimated mouth line |
+| `ears` (over:32) | `at`, `size`, `dx`, `dy`, `colors` | cat ears above the head, kept inside the frame |
+| `whisk` (over:33) | `at`, `dx`, `dy`, `colors` | whiskers |
+| `blush` (over:34) | `at`, `dx`, `dy`, `size`, `colors` | blush hearts on the cheeks |
+| `ast` (over:56) | `dx`, `dy`, `size`, `colors` | spinning asterisk on the nose |
+
+Kawaii shapes: note, note2, heart, hearto, bow, spark, star, dots, swirl, squig, arrow, cross, dash3, blush, ear,
+whisk. Ink shapes: zig, scratch, splat, rays, arrow, spark, cross, hatch, star, xx, bolt, bang. `colors` is
+{line, fill, blush}.
+
+## Local adapter layers
+
+The effects below work as shot `fx`, timeline `post` entries or shot `layers`
+(`{"type": "local_halftone", ...}`), rendered by `web/localfx.js`.
+
+| Effect | Parameters (defaults) | Notes |
+|---|---|---|
+| `local_whip` | `amount` (.3), `d` (.3 s), `at` (0), `dir` (right; left/up/down) | echo smear from `at`: echoes trail in `dir` up to 1.6 x amount of the frame, weighted toward the frame, reach fading as (1 - t/d)^2 |
+| `local_zoom_blur` | `amount` (.3), `d` (.3 s), `at`, `center` [.5,.5] | radial smear, fading as (1 - t/d)^2 |
+| `local_halftone` | `spacing` (8 px), `mix` (1), `ink` (#16181e), `paper` (#f4efdf) | dark dots on opaque paper; the ink share of each cell follows a tone-response curve (Rec.709 luma); `mix` is the dots' opacity, so overlapping dots read darker and no picture shows through; `mix` 0 leaves the picture untouched |
+| `local_speed_lines` | `count` (48), `opacity` (.5), `color`, `inner` (.55), `width` (1.5), `seed`, `every` (1 frame) | random radial lines (own layout), final phase |
+| `local_frame_slices` | `amount` (.1 of the width), `continuous` (true), `n` (9), `seed`, `d` (.15 s) | horizontal bands shifted; not continuous = a burst of `d` at the shot start |
+| `local_selective_color` | `hue` (deg), `tolerance` (25), `soft` (5), `min_sat` (.12) | colours within tolerance kept, others Rec.709 grey |
+| `local_posterize` | `levels` (4) | per-channel rounding to levels |
+| `local_paper_frame` | `mode` (paper / filmstrip), `color`, `margin` (.045), `seed` | torn paper edge or sprocket strip, final phase |
+| `local_scramble_text` | `text`, `family` (a declared font, required), `size` (12% of height, bold), `pos`, `fill`, `d` (.6 s), `at`, `seed` | letters resolve left to right over `d` |
+| `local_curve` | per-frame arrays from the shot start (or `at` s): `scale` (1), `dx`, `dy`, `blur` (fractions of the canvas height), `glow` (0..4), `exposure` (1); `glow_radius` (25/1080 of the height), `glow_bright` (2.4), `glow_contrast` (2.2), `glow_mode` (screen/add), `mirror` (true) | subject phase, under the text: scale about the centre, offset and defocus with mirrored edges, then a thresholded glow and an exposure factor; past the end of an array the value is the identity. A measured transition from `analyze_reference` `measure: ["transitions"]` comes out in this form; as a timeline `post` entry every shot opens with it |
+| `local_turbulent_displace` | `displacement` (turbulent / bulge / twist, each also `_smoother`; horizontal / vertical / cross), `amount` (20 px at 1080), `size` (100 px at 1080), `complexity` (1..10 octaves; a fraction weighs in the last one), `evolution` (0 revolutions), `speed` (0.5 revolutions/s, or 0 when `evolution` is keyframed), `cycle` (off; loop every n revolutions), `offset` (`[x, y]` px at 1080), `drift` (`[x, y]` px per second), `every` (1 frame), `pin` (all / none / horizontal / vertical, each also `_locked`), `edges` (reflect / clamp / wrap), `quality` (low / high), `region` (`[x0, y0, x1, y1]`, 0..1), `feather` (.02 of the height), `seed`, `at`; `amount`, `size`, `complexity`, `evolution` and `offset` take keyframes | Turbulent Displace: a fractal-noise field moves every pixel. Turbulent moves both axes by two fields, cross by one; bulge moves along the noise slope (highs swell), twist across it (swirls). The `_smoother` modes compute the field twice as finely and interpolate it cubically: smoother bends, slower. Evolution moves through the noise; `cycle` n makes revolution n meet revolution 0 (Cycle Evolution), so with `speed` s it loops every n / s seconds. `drift` slides the noise, `every` holds it for n frames (a hand-drawn boil). Pinning fades the move to zero at the pinned frame edges; the `_locked` pins also never pull pixels from beyond the frame. `edges` sets what a pixel pulled from beyond the frame shows; `quality` high averages four sub-pixel samples (antialiasing where the move squeezes the picture). `region` confines the move, e.g. to one word. Post phase by default, so shot text bends too; a shot `layers` entry with `"phase": "subject"` bends the picture under the text |
+| `local_displacement_map` | `clip` (required: the map, an id in `clips`), `src` (0 s into the map), `speed` (1), `loop` (loop / pingpong / clamp), `amount` (20 px at 1080), `amount_x` / `amount_y` (`amount`), `x` (red), `y` (green): red / green / blue / alpha / luma (or luminance) / hue / lightness / saturation / full / half / none (or off), `neutral` (128, or `"mean"`), `fit` (stretch / center / tile), `smooth` (0 px at 1080), `edges` (reflect / clamp / wrap), `quality` (low / high), `region`, `feather` (.02), `at`; the amounts take keyframes | Displacement Map: the map clip's frame moves each pixel by (channel - 128) / 127 x the axis amount, so mid grey keeps a pixel in place; full moves by the whole amount, half and none not at all. `fit` stretches the map over the canvas, centres it at its own size (nothing moves outside it) or tiles it; `smooth` softens it. `neutral` sets the level that stays put; `"mean"` uses each map frame's mean, so a plate shot on black (static, dust) moves pixels by its variation instead of shifting the whole picture one way. `edges` wrap is Wrap Pixels Around. A heat-haze, glass, water or ripple plate bends the picture with real footage; the map's frames are in the input manifest like every clip's |
+| `local_wave_warp` | wave_type sine / square / triangle / sawtooth / circle / semicircle / uncircle / noise / smooth_noise (sine); wave_height px at 1080 keyframable (10); wave_width px at 1080 keyframable (40); direction deg clockwise from up, travel direction (90); wave_speed cycles/s (1); phase deg (0); pinning none / all / center / top / bottom / left / right / horizontal / vertical (none); edges, quality, region, feather, at | Wave Warp. Waves travel along `direction` (degrees clockwise from up, 90 travels right) and move pixels across it. `wave_type` sine, square, triangle, sawtooth, circle, semicircle, uncircle, noise or smooth_noise (default sine). `wave_height` px at 1080 (default 10, keyframable). `wave_width` is the wavelength in px at 1080 (default 40, keyframable). `wave_speed` cycles per second (default 1). `phase` degrees. `pinning` none, all, center, top, bottom, left, right, horizontal or vertical: holds those edges still with a smooth fade over a quarter of the smaller side. `region`/`feather`, `edges`, `quality`, `at`. |
+| `local_ripple` | center [x,y] keyframable (.5,.5); radius fraction of diagonal (.5); wavelength px at 1080 (40); amplitude px at 1080 keyframable (20); wave_speed waves/s, + outward (1); phase deg (0); conversion asymmetric / symmetric (asymmetric); edges, quality, region, feather, at | Ripple. Circular waves spread from `center` [x, y] (0..1, keyframable). `radius` is a fraction of the frame diagonal where the ripple fades out (default .5). `wavelength` px at 1080 (default 40). `amplitude` px at 1080 (default 20, keyframable). `wave_speed` waves per second, positive outward (default 1). `phase` degrees. `conversion` asymmetric (default; moves pixels along one diagonal) or symmetric (moves them radially). `region`/`feather`, `edges`, `quality`, `at`. |
+| `local_shockwave` | center (.5,.5); at (0); d seconds (.6); ease engine ease or cubic-bezier (out3); max_radius fraction of diagonal (.6); width px at 1080 (80); amount px at 1080 keyframable, negative pulls in (40); split px at 1080 red/blue offset (0); edges, quality, region, feather | A beat-drop ring. Starting at `at`, a ring `width` px at 1080 wide (default 80) grows from `center` over `d` seconds (default .6). Its radius goes from 0 to `max_radius`, a fraction of the diagonal (default .6), along `ease` (default out3; any key ease or cubic-bezier except hold). `amount` px at 1080 (default 40, keyframable; negative pulls inward) pushes the picture radially and fades as the ring grows. `split` px at 1080 (default 0) offsets red and blue along the push. `region`/`feather`, `edges`, `quality`. |
+| `local_twirl` | angle deg keyframable, + clockwise (50); radius fraction of smaller side (.3); center keyframable (.5,.5); edges, quality, region, feather, at | Twirl. Turns the picture round `center` by `angle` degrees (default 50, positive clockwise, keyframable). The turn is full at the centre and eases to none at `radius`, a fraction of the smaller side (default .3). `region`/`feather`, `edges`, `quality`, `at`. |
+| `local_bulge` | center keyframable (.5,.5); horizontal_radius px at 1080 (300); vertical_radius px at 1080 (300); height -4..4 keyframable (1); taper 0..1 (0); pin bool (false); edges, quality, region, feather, at | Bulge. Magnifies an ellipse of `horizontal_radius` x `vertical_radius` px at 1080 (default 300 each) round `center`. `height` -4..4 (default 1, keyframable): 1 doubles the middle; a negative height pinches, as the exact inverse of the bulge of the same strength, so it never folds. `taper` 0..1 softens the edge. `pin` (bool) holds the frame edges still. `quality` defaults to high above \|height\| 1. `region`/`feather`, `edges`, `at`. |
+| `local_polar` | interpolation 0..1 keyframable (1); conversion rect_to_polar / polar_to_rect (rect_to_polar); edges, quality, region, feather, at | Polar Coordinates. `conversion` rect_to_polar (default; the top row goes to the centre, the left edge to 12 o'clock, clockwise) or polar_to_rect (unrolls a circle into rows). `interpolation` 0..1 (default 1, keyframable) mixes from the untouched picture to the full conversion. `region`/`feather`, `edges`, `quality`, `at`. |
+| `local_kaleidoscope` | center keyframable (.5,.5); segments 2..32 integer (6); rotation deg keyframable (0); size px at 1080 cell size (360); mirroring on / off (on); edges, quality, region, feather, at | Kaleidoscope. Folds the picture round `center` into `segments` wedges (2..32, default 6) and folds the radius every `size` px at 1080 (the cell size, default 360). `rotation` degrees (keyframable) turns the sampled wedge. `mirroring` on (default) flips every other wedge so the seams match; with an odd count, one seam (at the start of wedge 0) cannot match. off repeats one wedge. `region`/`feather`, `edges`, `quality`, `at`. |
+| `local_mirror` | reflection_center [x,y] keyframable (.5,.5); reflection_angle deg keyframable (0: left mirrored onto right; 90: top onto bottom); edges, quality, region, feather, at | Mirror. Reflects the picture across the line through `reflection_center` [x, y] (0..1, default the centre, keyframable) at `reflection_angle` degrees (keyframable). 0 keeps the left side and mirrors it onto the right; 90 mirrors the top onto the bottom; the angle turns the line clockwise. `region`/`feather`, `edges`, `quality`, `at`. |
+| `local_deep_glow` | `threshold` (.6 luma 0..1), `radius` (120 px at 1080), `exposure` (1, 0..20), `layers` (6, 2..8), `tint` ("none", or a colour: "#rrggbb", rgb(), [r,g,b], "$name"), `saturation` (1, 0..4), `blend` (add / screen), `at`; `threshold`, `radius`, `exposure` and `saturation` take keyframes | A deep, layered glow: parts brighter than `threshold` glow, with a squared soft knee above it, so parts just over the threshold glow faintly. The bright picture is blurred `layers` times with radii doubling up to `radius`. The blurs are summed with weights growing by sqrt 2 per layer and adding up to 1: a tight core, a wide tail (a point of light falls off about as r^-1.5), and at exposure 1 a flat bright area gets its thresholded self added once (a standard glow at intensity 1). `tint` colours the glow by its luma; `saturation` scales its colour. A frame with nothing above the threshold, or exposure 0, is left bit-identical. On a near-white plate (a logo on an off-white background), raise `threshold` above the background's luma, or the whole frame glows over the dark marks |
+| `local_lens_flare` | `position` (`[.3, .3]`, fractions, -1..2, may sit off frame), `brightness` (1, 0..3), `lens` (50_300mm_zoom / 35mm_prime / 105mm_prime), `tint` ("none" or a colour), `streak` (0, 0..1), `flicker` (0, 0..1), `seed` (1), `at`; `position` (a point), `brightness` and `streak` take keyframes | A lens flare, drawn with gradients (no image assets). It draws a hot core and glow at `position`, a halo, a faint rainbow ring and the lens's ghosts along the line from the light through the frame centre. 50-300 mm zoom: many small hexagonal ghosts. 35 mm prime: big soft ghosts and star rays. 105 mm prime: a tight core, small bright ghosts and a strong ring. `streak` adds an anamorphic horizontal streak; `flicker` is a seeded flutter of the brightness; `tint` colours everything. Keyframe `position` to track a light; brightness 0 leaves the frame untouched |
+| `local_light_rays` | `center` (`[.5, .5]`, -1..2), `intensity` (1, 0..10), `length` (.4, 0..1), `threshold` (.5), `tint` ("none" or a colour), `blend` (add / screen), `at`; `center` (a point), `intensity`, `length` and `threshold` take keyframes | Volumetric rays: parts brighter than `threshold` streak away from `center`. Each pixel averages the bright picture along the line back toward the centre over `length` of the way, nearer samples weighing more, so the rays fade out. The samples are jittered per pixel and the source is softened with the step, so rays stay smooth even with the centre far off frame. Built at most 270 px high |
+| `local_light_sweep` | `angle` (30 degrees from vertical; 30 leans like "/"), `width` (80 px at 1080), `softness` (.5, 0..1), `intensity` (1, 0..10), `color` (#ffffff), `d` (1 s), `ease` (inout; any sweep ease or a cubic-bezier, not hold), `position` (0..1 along the sweep, -1..2, keyframable; replaces the automatic sweep), `reception` (add / luma), `at`; `angle`, `width`, `softness`, `intensity` and `position` take keyframes | A shine passing over a logo or text. Without `position` the band crosses the whole frame over `d` seconds from `at`, entering and leaving clean. `position` instead puts the band's centre at that fraction of the frame along the sweep. `reception` luma scales the shine by the picture's own brightness, so it lights bright text and logos and leaves dark ground alone. A band narrower than 3 output pixels is drawn 3 px wide with its energy kept, so thin shines still show without shimmering |
+| `local_echo` | `echo_time` (-1/fps seconds; negative looks back, positive ahead; -10..10), `number_of_echoes` (1; 1..16), `starting_intensity` (1; 0..1), `decay` (1; 0..1), `operator` (add / maximum / minimum / screen / composite_back / composite_front / blend), `at` | Echo. Image k (k = 0 is the frame itself; 1..number_of_echoes are frames echo_time apart) has intensity starting_intensity x decay^k. The operator combines the images over black. blend is the intensity-weighted mean. composite_back puts the echoes behind the frame with the newest on top; composite_front puts them over it with the oldest on top. Each echo is the shot rendered at that time up to the effect, so it holds exactly what the effect sees on its own frame, including time effects earlier in the stack (posterize time then echo gives a stop-motion trail of held frames). Times outside the edit add nothing, and so do times where the shot has no source frame (before its source starts or after it ends, without a loop); source handles are echoed. Post phase by default, so shot text and stickers are echoed too. A shot `layers` entry with `"phase": "subject"` echoes the picture under the text, which is then drawn once on top; later phases (a final grade, letterbox) are always drawn once. Shot fx do not run on special shots. |
+| `local_time_displacement` | `map` (horizontal / vertical / radial / self / clip; clip when `clip` is set, else horizontal), `clip` (the map clip's id, with map clip), `src` / `speed` / `loop` (where the map clip plays, as `local_displacement_map`; need `clip`), `max_displacement` (1 second; 0..60, keyframable), `levels` (8 time slices; 2..16), `invert` (false), `center` (`[x, y]` 0..1, radial only; .5, .5), `at` | Time Displacement. The map's brightness picks the time shown, pixel by pixel. White is max_displacement seconds ahead, black is as far back and mid grey is now; invert swaps them. horizontal and vertical are gradients, black at the left or top. radial is black at `center` and white at the farthest corner. self uses the picture's own luma; clip uses that clip's frame at this time, stretched over the frame. The span is cut into `levels` whole-frame slices, and each pixel blends the two nearest, which gives slit-scan and time-ripple looks. Slices are the shot rendered up to the effect at those frames, earlier time effects included. Post phase by default, so shot text is displaced too; a shot `layers` entry with `"phase": "subject"` keeps the text over it. Shot fx do not run on special shots. |
+| `local_posterize_time` | `fps` (12; 1..60), `at` | Posterize Time. The shot shows frames held at `fps`. Each frame shows the frame at the start of its step, with steps counted from the shot start or `at`. At or above the canvas rate it does nothing. Post phase by default, so shot text is held too; a shot `layers` entry with `"phase": "subject"` holds the picture while the text stays live. Shot fx do not run on special shots. |
+| `local_frame_blend` | `samples` (4; 2..16), `shutter` (.5; 0..1), `at` | Frame blending looking back over earlier frames, with sub-frame spacing; it mixes existing frames and does not render new in-between ones. `samples` images, spaced `shutter` frames apart, are averaged over the last shutter x (samples - 1) frames. A sample between two frames mixes them. The result smears motion into a trail like a longer shutter. More samples make the trail longer, not only smoother, and shutter 0 leaves the frame alone. Earlier time effects in the stack are included. Post phase by default, so shot text blurs too; a shot `layers` entry with `"phase": "subject"` keeps the text sharp. Shot fx do not run on special shots. |
+| `local_gaussian_blur` | `blurriness` (20 px at 1080, 0..1000, keyframable; sigma = blurriness / 2), `dimensions` (both / horizontal / vertical), `repeat_edge_pixels` (true), region, feather, at | Gaussian Blur. Separable and continuous: every value of blurriness gives its own result, including sub-pixel ones, so keyframed blur-ins move on every frame. A one-axis blur never mixes rows (or columns). `repeat_edge_pixels` mirrors the picture past its edges so the border stays bright; false lets black in. 0 leaves the frame bit-identical. |
+| `local_directional_blur` | `direction` (0 degrees, keyframable; 0 smears vertically, 90 horizontally), `blur_length` (30 px at 1080, 0..1000, keyframable), region, feather, at | Directional Blur: each pixel is spread evenly `blur_length` px both ways along `direction`. Edges mirror. |
+| `local_radial_blur` | `amount` (10, 0..100, keyframable), `center` ([.5, .5], keyframable point), `type` (spin / zoom), `quality` (low / high), region, feather, at | Radial Blur. spin: copies turned evenly over `amount` degrees, half each way round `center`. zoom: each pixel averages the picture along its ray toward the centre (copies scaled 1x to (1 + amount / 200)x), so bright shapes streak outward and nothing is read from outside the frame. `quality` low spaces copies up to 2 px apart at the far corner, high 0.5 px. |
+| `local_camera_lens_blur` | `blur_radius` (20 px at 1080, 0..500, keyframable), `iris_shape` (triangle / square / pentagon / hexagon / heptagon / octagon / nonagon / decagon; hexagon), `iris_rotation` (0 degrees), `iris_roundness` (0..100 %), `highlight_gain` (0..100), `highlight_threshold` (0..255; 255), `map` (horizontal / vertical / radial / clip) or `clip` (a clip id; with src, speed, loop), `focal_distance` (0..255), `invert`, `center` (radial map), region, feather, at | Camera Lens Blur: each pixel becomes the iris polygon of radius `blur_radius`. It is averaged in the working (gamma) space, as 8- and 16-bit compositing does, so average brightness stays. Bright points bloom into shaped bokeh through the highlights: luma above `highlight_threshold` is boosted up to 1 + highlight_gain x 0.4 times before the blur. A blur map sets the radius per pixel. Map level `focal_distance` is sharp, and the blur grows to the full radius at the far end of the map (`invert` flips it); horizontal and vertical maps are black at the left / top, radial is black at `center`, and a clip map uses the clip's luma. Sharp areas keep the full-resolution picture. |
+| `local_unsharp_mask` | `amount` (50 %, 0..500, keyframable), `radius` (1 px at 1080, 0..250, keyframable), `threshold` (0..255), region, feather, at | Unsharp Mask: out = in + amount% x (in - gaussian(in, sigma = radius)), per channel, wherever the difference exceeds `threshold`. Sub-pixel radii work, so the default radius sharpens at 720p as well as at 1080p. |
+| `local_channel_blur` | `red_blurriness`, `green_blurriness`, `blue_blurriness` (0 px at 1080, 0..1000, keyframable), `dimensions`, `repeat_edge_pixels`, region, feather, at | Channel Blur: blurs each channel on its own, with the same Gaussian as Gaussian Blur (equal values are blurred in one pass, which matches Gaussian Blur exactly). All 0 (the default) is identity. |
+| `local_tilt_shift` | `center` (.5 as a y fraction, or [x, y]; keyframable), `angle` (0 degrees, keyframable), `band` (.25 of the frame height, keyframable), `feather` (.3, 0..1), `blur_radius` (30 px at 1080, 0..500, keyframable), `saturation` (1, 0..4, keyframable), at | The miniature look: the band through `center` at `angle` stays bit-identical; beyond it the blur grows over `feather` to `blur_radius`. `saturation` scales colour over the whole frame (1.2-1.5 sells the toy look). |
+| `local_rgb_split` | `mode` (linear / radial), `amount` (10 px at 1080, -1000..1000, keyframable), `angle` (0 degrees, linear; keyframable), `center` ([.5, .5], radial; keyframable), `edges` (reflect / clamp / wrap ...), `quality` (low / high; radial only), region, feather, at | RGB split / chromatic aberration. Red and blue move `amount` px in opposite directions and green stays. In linear mode, red moves along `angle` (degrees clockwise from +x: 0 moves red right and blue left, 90 moves red down). In radial mode, red moves outward from `center` and blue inward, in proportion to the distance from the centre (full `amount` at the farthest corner), like a lens's lateral aberration. Bilinear sampling. `quality` high averages four sub-pixel samples in radial mode; a linear split is one uniform shift and is already exact. An amount of 0 leaves the picture untouched. `region` weights the move. |
+| `local_motion_tile` | `tile_center` ([.5, .5], -10..10, keyframable), `tile_width` and `tile_height` (100, % of the frame, .5..1000, keyframable), `output_width` and `output_height` (100, %, 0..1000, keyframable), `mirror_edges` (false), `phase` (0 degrees, keyframable), `horizontal_phase_shift` (false), region, feather, at | Motion Tile. The frame is shrunk (or enlarged) to `tile_width` x `tile_height` and repeated in every direction from the tile centred at `tile_center`. The result fills a centred output area `output_width` x `output_height`: below 100 the rest is transparent, and above 100 nothing changes on a full frame. `mirror_edges` flips every other tile so the seams match. `phase` moves every other column down by phase / 360 of a tile (every other row right with `horizontal_phase_shift`). Keyframe `tile_center` to scroll the tiles and `phase` to slide the columns. At 100% with no offset the picture is untouched. Tiles larger than the frame zoom in on the centre tile. |
+| `local_find_edges` | `invert` (false), `blend_with_original` (0, 0..1, keyframable), region, feather, at | Find Edges. Each colour channel's Sobel gradient is drawn as dark lines on white, like a pencil drawing; `invert` draws bright lines on black. Flat areas read pure white (or black with invert). `blend_with_original` mixes the original back in (1 leaves it untouched). Alpha is kept. |
+| `local_emboss` | `direction` (45 degrees clockwise from up, keyframable), `relief` (1 px at 1080, 0..200, keyframable), `contrast` (100, 0..1000, keyframable), `blend_with_original` (0, 0..1, keyframable), region, feather, at | Emboss. The picture's luma is read as height and lit from `direction`: mid grey (128) where flat, light on slopes facing the light, dark on the others. `relief` is the distance between the two height samples and `contrast` scales the difference. Alpha is kept. |
+| `local_mosaic` | `horizontal_blocks`, `vertical_blocks` (10 each, 1..8192, keyframable, rounded), `sharp_colors` (false), region, feather, at | Mosaic. Solid blocks, each the average of the pixels under it, or with `sharp_colors` the colour at its centre. Block i spans floor(i W / n) to floor((i + 1) W / n), so the blocks tile the frame exactly. Keyframe the block counts for a pixelate-in or pixelate-out. |
+| `local_scatter` | `scatter_amount` (20 px at 1080, 0..1000, keyframable), `grain` (both / horizontal / vertical), `randomize_every_frame` (false), `seed` (1, integer), region, feather, at | Scatter. Every pixel shows a random pixel up to `scatter_amount` px away, along both axes or only one (`grain`). The pattern is fixed by `seed` unless `randomize_every_frame` is set, in which case it boils. Edge pixels take their samples from inside the frame. An amount of 0 leaves the picture untouched. |
+| `local_fractal_noise` | `fractal_type` (basic / turbulent_smooth / turbulent_sharp), `noise_type` (block / linear / soft_linear / spline; soft_linear), `invert` (false), `contrast` (100 %), `brightness` (0 %), `overflow` (clip / soft_clamp / wrap), `rotation` (0 deg), `scale` (100 %; 100 px features at 1080), `offset` ([0, 0] px at 1080), `complexity` (6, 1..20, fractional), `sub_influence` (70 %), `sub_scaling` (56 %), `sub_rotation` (0 deg), `evolution` (0 revolutions), `speed` (0 revolutions/s), `cycle` (off; loop every n revolutions), `seed` (1), `tint` ("none" or a colour), `blend`, `opacity` (1), `at`; `contrast`, `brightness`, `rotation`, `scale`, `offset`, `complexity`, `evolution` and `opacity` take keyframes | Fractal Noise, for textures, smoke, clouds and light leaks. It adds octaves of noise: each is `sub_scaling` % the size of the one before, `sub_influence` % as strong and turned `sub_rotation` degrees more, and a fractional complexity weighs in the last octave. basic is signed noise round mid grey; turbulent_sharp is \|noise\| with sharp dark creases; turbulent_smooth gives soft billows. Then come invert, contrast and brightness about mid grey, then the overflow. `evolution` + `speed` x t moves through the noise at a steady pace. `cycle` n loops it exactly every n revolutions, by taking a circle through 4-D noise. `tint` colours it black-to-colour. It is computed at most 480 px wide and upscaled smoothly. Deterministic per seed and frame |
+| `local_cell_pattern` | `cell_pattern` (bubbles / crystals / plates / tubular; bubbles), `invert`, `contrast` (100), `brightness` (0), `overflow` (clip / soft_clamp / wrap), `disperse` (1, 0..1), `size` (60 px at 1080), `offset` ([0, 0] px at 1080), `evolution` (0 revolutions), `speed` (0), `seed` (1), `blend`, `opacity`, `at`; `contrast`, `brightness`, `disperse`, `size`, `offset`, `evolution` and `opacity` take keyframes | Cell Pattern. There is one feature point per `size` px cell, scattered by `disperse` (0 gives a square grid). Each point circles its place once per revolution of evolution, so the pattern loops every revolution. bubbles: round bright cells. crystals: bright cells with dark seams. plates: a flat grey per cell. tubular: bright seams. Computed at most 480 px wide |
+| `local_gradient_ramp` | `start` ([.5, 0]), `start_color` (black), `end` ([.5, 1]), `end_color` (white), `shape` (linear / radial), `ramp_scatter` (0, 0..1), `blend`, `opacity`, `at`; `start`, `end`, `ramp_scatter` and `opacity` take keyframes | Gradient Ramp. linear is constant along lines across start-end and held beyond both ends. radial makes rings round `start` out to the distance to `end`. `ramp_scatter` dithers it to break up banding. The start colour is exact at `start` and the end colour at `end` |
+| `local_four_color_gradient` | `point_1`..`point_4` ([.1, .1], [.9, .1], [.1, .9], [.9, .9]), `color_1`..`color_4` (yellow, green, magenta, blue), `blend_amount` (100, 1..1000), `jitter` (0, 0..1), `blend`, `opacity`, `at`; points, `blend_amount`, `jitter` and `opacity` take keyframes | 4-Color Gradient. Four colours at four points, mixed by inverse distance. A lower `blend_amount` lets each colour hold its own region with sharper seams; a higher one is softer, toward one average. `jitter` dithers it. Each colour is exact at its point |
+| `local_grid` | `anchor` ([.5, .5]), `width` (100 px at 1080), `height` (= width), `border` (3 px at 1080), `feather` (0 px), `invert` (false), `color` (white), `blend`, `opacity`, `at`; `anchor`, `width`, `height`, `border`, `feather` and `opacity` take keyframes | Grid. Lines `border` px wide every `width` x `height` px, with one crossing at `anchor`. `feather` softens them; `invert` fills the cells instead |
+| `local_radio_waves` | `producer` ([.5, .5]), `frequency` (1 wave/s), `expansion` (200 px/s at 1080), `lifespan` (3 s), `shape` (circle / square / polygon), `sides` (5, polygon), `stroke_color` (white), `start_width` (5 px at 1080), `end_width` (5), `fade_in` (0 s), `fade_out` (1 s), `blend`, `opacity`, `at`; `producer` and `opacity` take keyframes | Radio Waves. Waves are born at `producer` `frequency` times a second from `at`. Each keeps the place it was born at, grows `expansion` px a second and lives `lifespan` seconds. The stroke tapers from start_width to end_width, fades in over `fade_in` and out over the last `fade_out` seconds. A polygon has a vertex up |
+| `local_lightning` | `origin` ([.3, .2]), `direction` ([.7, .8]), `lightning_type` (strike / breaking / bouncy / omni / anywhere), `conductivity` (0), `core_radius` (3 px at 1080), `core_color` (white), `glow_radius` (50 px at 1080), `glow_opacity` (.5), `glow_color` (#4a6cff), `forking` (.25, 0..1), `decay` (.3, 0..1), `turbulence` (1, 0..10), `seed` (1), `flicker` (0: off; re-seed every n frames), `blend`, `opacity`, `at`; `origin`, `direction`, `conductivity`, `core_radius`, `glow_radius`, `glow_opacity` and `opacity` take keyframes | Advanced Lightning, a fractal (midpoint-displacement) bolt from `origin` toward `direction`. strike runs from origin to the point. breaking fans three bolts toward it. bouncy has wide swinging bends. omni sends bolts all round the origin, as long as origin-direction. anywhere strikes a point that wanders as conductivity changes. Keyframe `conductivity` to make the path crawl smoothly. `forking` sets how often branches split off and `decay` how fast they thin and fade. The core is drawn inside a two-layer glow (tight and wide) whose halo peaks at glow_opacity and reaches `glow_radius`. `flicker` n re-seeds it every n frames for a strobing strike |
+
+Keyframes (`local_turbulent_displace`, `local_displacement_map` and the effect packs): `[[seconds, value], ...]` from
+the shot start (or `at`), held before the first key and after the last. A key may carry an ease, `[seconds, value, ease]`, that shapes
+the move to the next key: `lin` (the default), `in2`, `in3`, `out2`, `out3`, `inout`, `inout3`, `outback`, `ease`
+(an easy ease, 33% influence on both sides), `hold`, or a cubic-bezier `[x1, y1, x2, y2]` as drawn in a graph editor. An `offset` key's
+value is `[x, y]`. Both effects work on the whole frame, so there is no layer to resize or output to expand: `edges` decides what shows where the move reaches past the frame.
+
+Effect packs: the Distort (`local_wave_warp` to `local_mirror`), Light (`local_deep_glow`, `local_lens_flare`,
+`local_light_rays`, `local_light_sweep`), Time (`local_echo`, `local_time_displacement`, `local_posterize_time`,
+`local_frame_blend`), Blur & Sharpen (`local_gaussian_blur`, `local_directional_blur`, `local_radial_blur`, `local_camera_lens_blur`, `local_unsharp_mask`, `local_channel_blur`, `local_tilt_shift`), Stylize (`local_rgb_split`, `local_motion_tile`, `local_find_edges`, `local_emboss`, `local_mosaic`, `local_scatter`) and Generate (`local_fractal_noise`, `local_cell_pattern`, `local_gradient_ramp`, `local_four_color_gradient`, `local_grid`, `local_radio_waves`, `local_lightning`) effects live in `web/fx_<pack>.js`, validated by `openkatana/fx_<pack>.py`. A new pack registers its effects with
+`OpenKatanaLocal.register` and adds its validator to `local_fx.PACKS`. Time effects (`local_echo`, `local_time_displacement`, `local_posterize_time`, `local_frame_blend`) render the same shot at other frames. Each nested render stops just before the effect (its phase and order), so items after it are drawn once, on top. Time effects that come before it in the stack run inside it, up to three levels deep. In the post phase they run first (orders 1-4: posterize time, time displacement, frame blend, echo), as in a compositing stack. Inside a transition each side uses its own shot.
+`preview_effect` renders a short preview of any of these on a moving test card or project media.
+
+`cam.local_measured` `{f0, f1, pan_x, pan_y, zoom, roll_deg}` is a linear move over absolute frames `f0..f1-1`: pan by
+`pan_x` x width and `pan_y` x height, roll by `roll_deg`, zoom by `1 + zoom`, with a constant cover margin for the
+end state so the picture never uncovers. Missing keys default to 0.
+
+## Project hooks (custom layers and text types)
+
+For a measured mechanism the catalogue lacks, a project may declare one script:
+
+```json
+"hooks": {"src": "comp/fx.js", "layers": ["k_crown"], "text_types": ["k_text"]}
+```
+
+Declared layer names may then be used as `fx` keys (`true`, `false` or an object of parameters; `phase`/`order`
+allowed) or as layer types, and declared text types as global `text` types (`custom_text_types` adds text
+types). Undeclared names stay rejected, and hook names may not shadow built-in effects. The script registers what it
+declared:
+
+```js
+OpenKatanaHooks.layer('k_crown', {phase: 'over', order: 22, draw(ctx, params, s) { /* draw on ctx */ }});
+OpenKatanaHooks.text('k_text', {init(item, i) {}, draw(ctx, item, s, i) { /* item.t0/t1/text/params */ }});
+```
+
+A layer that draws project images declares them per frame with `prepare(params, s)`, which returns up to 32
+project-relative `.png`, `.jpg` or `.webp` paths. The renderer loads and decodes them before `draw` runs, which finds
+them in `s.images[path]` (`draw` itself cannot wait for an image to decode). Each image a hook loads is added, with its
+SHA-256, to the input manifest and to `receipt.hooks.assets`.
+
+```js
+OpenKatanaHooks.layer('k_film', {phase: 'final',
+  prepare(p, s) { return [`textures/film/${String(s.f % 48).padStart(5, '0')}.png`]; },
+  draw(ctx, p, s) { ctx.globalCompositeOperation = 'screen'; ctx.drawImage(Object.values(s.images)[0], 0, 0, s.W, s.H); }});
+```
+
+For a texture plate over the whole edit, a timeline overlay (below) needs no script.
+
+`s` carries `W`, `H`, `t` (absolute seconds at the frame centre), `f`, `fps`, `lt` (seconds into the shot), `dur`,
+`face` and `noise(a, b, c)`. Register hooks through `OpenKatanaHooks` as above. The script
+runs in the headless render page under a same-origin Content-Security-Policy; every request that is not to the
+loopback project server is blocked and listed in `receipt.hooks.blocked_requests`; `Math.random` is re-seeded every
+frame so renders are reproducible; the script's SHA-256 is in the input manifest and `receipt.hooks`. A hook that
+throws, fails to load or does not register a declared name stops the render with a named error. There is no CPU
+time limit inside a frame: an endless loop in a hook stalls that render.
+
+## Overlays
+
+Top-level `overlays` are layers stacked over the finished frame, above every shot, transition, special, text event
+and shot layer. They are drawn in array order (later entries on top), each from `f0` to exclusive `f1` (or `t0`/`t1`
+seconds).
+
+```json
+"overlays": [
+  {"type": "clip", "clip": "dust", "f0": 0, "f1": 2255, "speed": 0.25, "blend": "screen", "opacity": 0.6,
+   "floor": 0.05, "tint": "#ffd6b3"},
+  {"type": "clip", "clip": "static", "f0": 0, "f1": 2255, "fps": 24, "speed": 0.8, "blend": "screen", "opacity": 0.35},
+  {"type": "adjust", "f0": 1115, "f1": 2255, "amt": [[1115, 0], [1130, 0.5]],
+   "look": {"type": "studio", "grade": {"sat": 1.2, "contrast": 1.08, "black": 0.02}}}
+]
+```
+
+| Type | Fields (defaults) | What it does |
+|---|---|---|
+| `clip` | `clip` (an id from `clips`), `f0`, `f1`, `src` s or `srcf`, `speed` (1), `fps`, `loop` (loop / pingpong / clamp), `blend` (screen), `opacity` (1), `floor` (0), `tint`, `fit` (cover / contain / stretch) | another clip blended over the picture: dust, film scratches, grain, light leaks. Sampling uses frame centres as shots do; `fps` steps the plate to its own picture rate (24 on a 60-fps canvas gives the 2-3 cadence of a 24p overlay); `floor` cuts the plate's black level ((x - floor) / (1 - floor)) so a hazy plate does not lift the blacks; `tint` multiplies the plate before blending |
+| `adjust` | `f0`, `f1`, `look` (any look: a studio grade, a preset or a filter look), `amt` (1) | an adjustment layer: the look is applied to everything beneath it and mixed back at `amt` |
+
+`blend` is one of normal, screen, add, multiply, overlay, soft-light, hard-light, lighten, darken, color-dodge,
+color-burn, difference and exclusion. `opacity` and `amt` take a number in 0..1 or keyframes `[[frame, value], ...]`
+in absolute output frames, linear between keys and held before the first and after the last. At most 64 overlays.
+Overlay clips are prepared like any other clip (`import_media`); for a smooth slower plate, make a slow-motion copy
+with `analyze_clip` `retime` and play it at speed 1, as `speed` picks whole source frames. An overlay's source frames
+are listed in the render's input manifest with the other clips.
+
+## Alpha mattes and subject layers
+
+Add `mask_dir` to a clip. It points to `%05d.png` files starting at zero, matching
+the clip's count and source dimensions. Use white RGB plus an alpha channel:
+transparent means background, opaque means subject, and partial alpha blends.
+Grayscale RGB-only masks fail validation; they need explicit conversion to alpha.
+Each mask stays tied to the whole source index, including during reverse and slow
+motion; it is not interpolated with the blended plate. Mask bytes are included in
+the input hash manifest. Automatic segmentation is a separate, unimplemented workflow.
+
+`fx.cutout:true` redraws the subject over back graphics. `fx.outline` adds a matte
+halo and enables subject redraw unless `cutout:false` is explicit. Outline parameters
+are `r` 14, `color` `#e2b0f0`, `blur` 3, `alpha` 0.95, `dx` 16 and `dy` 6, in canvas
+pixels. These effects do nothing when a clip has no matte, matching the reference.
+For text behind a subject, add a text layer with `phase:"back"` and set `fx.cutout:true`.
+
+Review a matte with `review_mask` (sheets every 0.25 s plus the last frame, coverage, region count and flags; record
+`accept: true/false`). In strict review mode a timeline that renders a clip's matte (cutout, outline, contour,
+contour_glow, cut-out stickers) is refused until that exact matte is accepted. `analyze_clip masks` with
+`{"mode": "refine", "grow": px, "fill_holes": true, "keep_largest": true, "smooth": frames, "feather": px}` writes a
+refined copy of the current matte.
+
+## Typography
+
+Fonts are local files declared in the top-level `fonts` list: `[{"family", "url" (project path), "weight", "style"}]`;
+every text item names one of those families.
+OpenKatana bundles 24 SIL OFL fonts (`openkatana/fonts`, listed in THIRD_PARTY_NOTICES.md): Anton, Bebas Neue, Caveat,
+Cormorant, Cormorant Garamond, Dela Gothic One (Japanese), Fira Sans Extra Condensed (Bold, ExtraBold, Black), Great
+Vibes, Inter (roman, italic), JetBrains Mono, League Gothic, Montserrat, Noto Sans, Nunito, Oswald, Playfair Display
+(roman, italic), Press Start 2P, Rubik, Unbounded and UnifrakturMaguntia. `list_fonts` lists them first with
+`bundled: true`, the licence and copyright; `import_media` on a bundled font's `path` copies it into the project with
+its licence file (asset `license`), and its project path is the `url` to declare. Variable fonts take `weight` from the
+declaration. Other fonts are your own files (OpenKatana downloads nothing). `list_fonts` with `text` reports which characters each font
+lacks; `preview_fonts` reports missing glyphs per specimen; validation warns (`missing_glyphs`) when timeline text uses
+characters its declared font file does not contain (the browser would draw a fallback font there).
+
+Global events need `f0`, exclusive `f1`, `family` and `text`. `type` can be `font`,
+`caption` or `word`. Shot layers use `type:"text"` and `at`/`d` in shot-relative
+seconds instead. Global text is suppressed by `fx.text:false`; explicit text layers
+remain independent. Text `pos` is normalized, while `size` is in canvas pixels.
+
+| Property | Default and behavior |
+|---|---|
+| `size`, `weight`, `style` | 96, 800 (number 1..1000 or "normal"/"bold"), italic |
+| `fill`, `stroke`, `lw` | white, `#c98be0`, 5; `stroke:null` removes the outline in ordinary text |
+| `shadow` | glow; also dark, false, or `{color,blur,dx,dy}` |
+| `align`, `rot`, `alpha` | center, 0 radians, 1 |
+| `karaoke` | `{words: [{text, t0, t1}], highlight, mode: word|sweep}`: word times in seconds from the item start; each word (in order in `text`) takes `highlight` from its `t0` (`sweep` fills it left to right until `t1`); plain text only. `make_captions` writes these. |
+| `anim` | none, pop, slam, fade, grow, type |
+| `anim_d` | 0.15 seconds for fade, otherwise 0.1 |
+| `pop`, `sc` | 0.18 punch amount; slam scales `[1.3,0.9,1.06,1]` |
+| `dt`, `base` | Typewriter interval 0.05 seconds, initial extra character count 0 |
+| `fade_out` | Optional seconds before the event ends |
+| `boil`, `seed` | Jitter amount in pixels, default 0; seed 3 |
+
+Observed reference quirks are preserved: shadow applies to the stroke, so ordinary
+text with no stroke has no glow; typewriter text remains centered regardless of
+`align`, and `stroke:null` falls back to the default outline in typewriter mode.
+Mixed-weight `parts` and face anchors are supported as described below. Arbitrary
+CSS font strings remain unsupported. Unknown fields are rejected.
+
+Earlier OpenKatana builds used plain text defaults. To preserve that appearance,
+set `weight:400`, `style:"normal"`, `stroke:null` and `shadow:false` explicitly.
+
+### Mixed weights
+
+Use `parts:[["NEW","bold"],[" WAVE","thin"]]` instead of, or alongside, `text`.
+Parts take precedence. Kinds are `bold` (italic 800), `thin` (normal 300) and
+`heavy` (italic 900); a single text event can also specify `kind`.
+Every event still needs an explicitly declared local `family`.
+
+Measured quirks: parts render as separately centered characters, ignoring `align`.
+Widths are measured using each kind even when an explicit `weight`/`style` overrides
+the drawing font. Typewriter/parts stroke widths are fixed at 4 for thin and 5 for
+other kinds, ignoring `lw`; null stroke uses the default outline. Parts suppress
+pop/slam/grow scaling but retain alpha fade and fade-out. `anim:"type"` reveals
+parts over time; other animation values show all parts immediately.
+
+### Face anchors
+
+Set `anchor:"face"`, optional `o:[x,y]` in eye-distance units, and optional
+`size_eu`, `min`, `max`. The default offset is `[0,1.05]`. Text follows the face's
+roll plus `rot`; `size_eu` replaces the pixel size using eye distance. Without it,
+the ordinary `size` remains. This is text placement only, not a face-locked camera.
+
+For a manual box, add `"face":{"box":[80,30,240,170]}` to a shot. These are
+source-pixel corners, not width/height. Eye positions are inferred at 30% and 70%
+of box width and 42% of its height. `face:false` suppresses the track on that shot.
+
+For moving anchors, a clip's `faces` points to a local UTF-8 JSON array with one
+entry per source frame. A typical entry is:
+
+```json
+{"f":0,"box":[60,30,160,140],"eyes":[[100,75],[160,85]],"score":1,"src":"det"}
+```
+
+Here `box` is `[x,y,width,height]`; eyes are two pixel positions. Optional nose,
+mouth, score and src metadata are validated. Missing faces use `null`, or an entry
+with `box:null`. `faces_size:[width,height]` describes the track coordinate space;
+it defaults to the prepared clip size. Track bytes are hashed in the input manifest.
+
+`analyze_clip` faces writes such tracks. Its default detector is the bundled YuNet model (MIT, OpenCV Zoo), which
+measures the box, both eyes, the nose tip `[x,y]` and both mouth corners `[[x,y],[x,y]]` on every detected frame and
+tracks them through missed frames (`eyes_src` det/track; nose and mouth share it). `detector:"cascade"` keeps the
+OpenCV cascades (eyes only, else `eyes_src:"estimate"`). When a track has nose/mouth points, face graphics use them:
+`fangs` hang from the measured mouth and `ast` sits on the nose tip; without them both are estimated from the eyes.
+The render's `frame-trace.json` face entry adds the roll `a` and the landmarks in eye units (`nu,nv` nose, `mu,mv`
+mouth centre, `mw` mouth width).
+
+The measured reference behavior fills missing entries from the nearest valid frame
+(earlier wins ties), then smooths center coordinates with sigma 1.4 and distance/
+roll with sigma 2.6, each within seven frames. Tracks follow the whole source frame
+index during slow motion and reverse playback. Manual boxes bypass smoothing and
+override a clip track. With no usable face, the reference fallback is a canvas
+model centered at `(0.5W,0.42H)` with eye distance `0.1W`. No detection, automatic
+tracking, identity processing or source-binding assurance is performed here;
+supply coordinates belonging to your source.
+
+### Graffiti
+
+`type:"graffiti"` uses the Switchback letterforms (`web/letterforms.js`) and
+needs no font. Layout, fitting and write/slam/hold animation use the controls below.
+
+```json
+{"type":"graffiti","word":"GO!","f0":0,"f1":48,"region":"center","mode":"write"}
+```
+
+Choose exactly one of `word`, `text` (newline-separated) or `lines`. Text becomes
+uppercase. Supported glyphs are A-Z, 0-9, space and `! ? . , : - ' / + * # &`.
+Modes: `hold` is stable; `write` reveals strokes; `slam` scales and shakes briefly;
+omitted mode is static lettering with deterministic jitter. `wdur` controls write
+duration. `wkeys` supplies one absolute time per non-space letter plus an end time;
+keys must increase. `sc` sets slam steps. `seed` makes variations repeatable.
+
+`region` accepts a normalized rectangle or center/full/left/right/top/bottom,
+leftwide/rightwide, tl/tr/bl/br/tl2, lower/title. `cap` limits letter height.
+`nib`, `halo`, `halo_color`, `ink`, `echo`, `under`, `rot`, `slant`, `bounce`,
+`longbar`, `leading`, `line_dx`, `line_rot` and `line_scale` control treatment.
+Colors are explicit hex; halo_color and echo also accept false. Per-line arrays
+must match the line count. `under` accepts a bool or per-line booleans.
+
+Shot `fx.graffiti` and `type:"graffiti"` layers use `at`/`d` seconds and default
+to write mode. Explicit layers default to phase over and order 100+index; the
+built-in fx uses over:61. `fx.text:false` hides global graffiti, not explicit layers.
+
+Audio copy preserves packets and checks the output stream hash against its input.
+Use an already aligned AAC/M4A soundtrack compatible with MP4 for copy mode.
+Mix mode adds trimming, placement, speed, fades, gain and optional limiting; see
+EXPANSION.md. Neither mode implies a listening review or a loudness target.
+
+## Expanded contract
+
+See [EXPANSION.md](EXPANSION.md) for looks, new effects, original graffiti, audio mixing,
+source analysis, workflow processing and project UI controls. Unsupported fields still fail.
+
+## Additional explicit typography controls
+
+Text supports hollow `fill:null`, independent `scale_x`/`scale_y`, pixel `tracking`,
+step `opacity_keys`, per-character `letter_opacity_keys` and deterministic `flicker`.
+Set `render_style:"explicit"` for typewriter/parts that honor supplied font styling,
+alignment, `stroke:null` and `lw:0`. Omitted render_style retains legacy typed text
+defaults. Full schemas and limitations are in [EDITOR_TOOLS.md](EDITOR_TOOLS.md).

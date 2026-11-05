@@ -1,0 +1,59 @@
+{
+  "load": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input_still.png"
+    }
+  },
+  "bgm": {
+    "class_type": "LoadBackgroundRemovalModel",
+    "inputs": {
+      "bg_removal_name": "birefnet.safetensors"
+    }
+  },
+  "matte": {
+    "class_type": "RemoveBackground",
+    "inputs": {
+      "bg_removal_model": [
+        "bgm",
+        0
+      ],
+      "image": [
+        "load",
+        0
+      ]
+    }
+  },
+  "bgMask": {
+    "class_type": "InvertMask",
+    "inputs": {
+      "mask": [
+        "matte",
+        0
+      ]
+    }
+  },
+  "rgba": {
+    "class_type": "JoinImageWithAlpha",
+    "inputs": {
+      "image": [
+        "load",
+        0
+      ],
+      "alpha": [
+        "bgMask",
+        0
+      ]
+    }
+  },
+  "save": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "rgba",
+        0
+      ],
+      "filename_prefix": "openfield/cutout"
+    }
+  }
+}

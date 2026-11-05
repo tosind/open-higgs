@@ -22,9 +22,11 @@ const StagePage = lazy(() => import('./pages/Stage'));
 const ObjectPage = lazy(() => import('./pages/Object'));
 import { Apps, Explore, Library, Soon } from './pages/Home';
 import Setup from './pages/Setup';
+const StudioPage = lazy(() => import('./pages/Studio'));
 
 const SECTIONS = [
-  { to: '/', label: 'Explore' },
+  { to: '/', label: 'Studio' },
+  { to: '/explore', label: 'Explore' },
   { to: '/image', label: 'Image' },
   { to: '/edit', label: 'Edit' },
   { to: '/video', label: 'Video' },
@@ -40,6 +42,7 @@ export default function App() {
   const judge = useStore((s) => !!s.status?.judge);
 
   const page = (() => {
+    if (path === '/') return <StudioPage />;
     if (path === '/image') return <ImagePage />;
     if (path === '/video') return <VideoPage />;
     if (path === '/director') return <DirectorPage />;
@@ -62,9 +65,9 @@ export default function App() {
 
   // the tab says where you are
   useEffect(() => {
-    const name = path === '/' ? 'Explore' : path === '/setup' ? 'Setup' : path === '/library' ? 'Library'
+    const name = path === '/' ? 'Studio' : path === '/explore' ? 'Explore' : path === '/setup' ? 'Setup' : path === '/library' ? 'Library'
       : APPS.find((a) => a.route.split('?')[0] === path)?.name ?? SECTIONS.find((s) => s.to === path)?.label;
-    document.title = name ? `${name} · OpenField` : 'OpenField';
+    document.title = name ? `${name} · Open Higgs` : 'Open Higgs';
   }, [path]);
 
   const isActive = (to: string) => {
@@ -78,7 +81,7 @@ export default function App() {
   return (
     <div className={`app ${judge ? 'has-judge' : ''}`}>
       <header className="topbar">
-        <a className="brand" {...linkProps('/')}><Logo /><span className="brand-word">OpenField</span></a>
+        <a className="brand" {...linkProps('/')}><Logo /><span className="brand-word">Open Higgs</span></a>
         <nav className="nav">
           {SECTIONS.map((s) => <a key={s.to} className={`nav-link ${isActive(s.to) ? 'active' : ''}`} {...linkProps(s.to)}>{s.label}</a>)}
           <span className="nav-sep" />
@@ -91,7 +94,7 @@ export default function App() {
         </nav>
         <div className="topbar-right">
           <a className="nav-link" {...linkProps('/setup')} title="Models and setup">Setup</a>
-          <GpuChip />
+          {path === '/' ? <a className="nav-link" {...linkProps('/setup')}>Compute setup ↗</a> : <GpuChip />}
         </div>
       </header>
       <JudgeBanner />

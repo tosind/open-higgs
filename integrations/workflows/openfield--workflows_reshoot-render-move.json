@@ -1,0 +1,377 @@
+{
+  "src": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "input_video.mp4",
+      "force_rate": 24,
+      "custom_width": 864,
+      "custom_height": 480,
+      "frame_load_cap": 97,
+      "skip_first_frames": 0,
+      "select_every_nth": 1
+    }
+  },
+  "srcFit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "src",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 864,
+      "height": 480,
+      "crop": "center"
+    }
+  },
+  "mogeModel": {
+    "class_type": "LoadMoGeModel",
+    "inputs": {
+      "model_name": "moge_2_vitl_normal_fp16.safetensors"
+    }
+  },
+  "moge": {
+    "class_type": "MoGeInference",
+    "inputs": {
+      "moge_model": [
+        "mogeModel",
+        0
+      ],
+      "image": [
+        "srcFit",
+        0
+      ],
+      "resolution_level": 2,
+      "fov_x_degrees": 0,
+      "batch_size": 4,
+      "force_projection": true,
+      "apply_mask": true,
+      "refine_steps": 0
+    }
+  },
+  "warp": {
+    "class_type": "CrossViewWarp",
+    "inputs": {
+      "frames": [
+        "srcFit",
+        0
+      ],
+      "moge_geometry": [
+        "moge",
+        0
+      ],
+      "azimuth": 30,
+      "elevation": 10,
+      "distance": 1,
+      "hfov": 0,
+      "vertical_shift": 0,
+      "depth_ratio": 6,
+      "smooth_depth": false,
+      "invert_depth": false,
+      "roll_lock": false,
+      "pivot_override": true,
+      "pivot_x": 0,
+      "pivot_y": 0,
+      "pivot_z": 1.05,
+      "use_keyframes": true,
+      "frame_count": 0,
+      "keyframes": "[{\"f\":1,\"az\":0,\"el\":0,\"dist\":1},{\"f\":96,\"az\":30,\"el\":10,\"dist\":1}]",
+      "interp_motion": "ease_in_out",
+      "interpolation": "linear",
+      "keep_source_aim": true,
+      "preview_size": 384,
+      "frame_index": 1
+    }
+  },
+  "unet": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "lora": {
+    "class_type": "LTXICLoRALoaderModelOnly",
+    "inputs": {
+      "model": [
+        "unet",
+        0
+      ],
+      "lora_name": "LTX2.3-22B_IC-LoRA-CrossView-Warp_v2_6000.safetensors",
+      "strength_model": 1.3
+    }
+  },
+  "clip": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors",
+      "type": "ltxv"
+    }
+  },
+  "vvae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-video-vae-bf16.safetensors"
+    }
+  },
+  "avae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-audio-vae-bf16.safetensors"
+    }
+  },
+  "pos": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "clip",
+        0
+      ],
+      "text": "crossview."
+    }
+  },
+  "neg": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "clip",
+        0
+      ],
+      "text": "magenta, pink holes, smeared, warped, distorted face, blurry, low quality, text, watermark"
+    }
+  },
+  "cond": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "pos",
+        0
+      ],
+      "negative": [
+        "neg",
+        0
+      ],
+      "frame_rate": 24
+    }
+  },
+  "lat": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": 864,
+      "height": 480,
+      "length": 97,
+      "batch_size": 1
+    }
+  },
+  "gWarp": {
+    "class_type": "LTXAddVideoICLoRAGuide",
+    "inputs": {
+      "positive": [
+        "cond",
+        0
+      ],
+      "negative": [
+        "cond",
+        1
+      ],
+      "vae": [
+        "vvae",
+        0
+      ],
+      "latent": [
+        "lat",
+        0
+      ],
+      "image": [
+        "warp",
+        0
+      ],
+      "frame_idx": 0,
+      "strength": 1,
+      "latent_downscale_factor": 1,
+      "crop": "disabled",
+      "use_tiled_encode": false,
+      "tile_size": 256,
+      "tile_overlap": 64
+    }
+  },
+  "gSrc": {
+    "class_type": "LTXAddVideoICLoRAGuide",
+    "inputs": {
+      "positive": [
+        "gWarp",
+        0
+      ],
+      "negative": [
+        "gWarp",
+        1
+      ],
+      "vae": [
+        "vvae",
+        0
+      ],
+      "latent": [
+        "gWarp",
+        2
+      ],
+      "image": [
+        "srcFit",
+        0
+      ],
+      "frame_idx": 0,
+      "strength": 1,
+      "latent_downscale_factor": 1,
+      "crop": "disabled",
+      "use_tiled_encode": false,
+      "tile_size": 256,
+      "tile_overlap": 64
+    }
+  },
+  "latA": {
+    "class_type": "LTXVEmptyLatentAudio",
+    "inputs": {
+      "frames_number": 97,
+      "frame_rate": 24,
+      "batch_size": 1,
+      "audio_vae": [
+        "avae",
+        0
+      ]
+    }
+  },
+  "av": {
+    "class_type": "LTXVConcatAVLatent",
+    "inputs": {
+      "video_latent": [
+        "gSrc",
+        2
+      ],
+      "audio_latent": [
+        "latA",
+        0
+      ]
+    }
+  },
+  "guider": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": [
+        "lora",
+        0
+      ],
+      "positive": [
+        "gSrc",
+        0
+      ],
+      "negative": [
+        "gSrc",
+        1
+      ],
+      "cfg": 1
+    }
+  },
+  "sampler": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler_ancestral"
+    }
+  },
+  "sigmas": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"
+    }
+  },
+  "noise": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    }
+  },
+  "sample": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "noise",
+        0
+      ],
+      "guider": [
+        "guider",
+        0
+      ],
+      "sampler": [
+        "sampler",
+        0
+      ],
+      "sigmas": [
+        "sigmas",
+        0
+      ],
+      "latent_image": [
+        "av",
+        0
+      ]
+    }
+  },
+  "split": {
+    "class_type": "LTXVSeparateAVLatent",
+    "inputs": {
+      "av_latent": [
+        "sample",
+        0
+      ]
+    }
+  },
+  "crop": {
+    "class_type": "LTXVCropGuides",
+    "inputs": {
+      "positive": [
+        "gSrc",
+        0
+      ],
+      "negative": [
+        "gSrc",
+        1
+      ],
+      "latent": [
+        "split",
+        0
+      ]
+    }
+  },
+  "decode": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "crop",
+        2
+      ],
+      "vae": [
+        "vvae",
+        0
+      ]
+    }
+  },
+  "video": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "decode",
+        0
+      ],
+      "fps": 24
+    }
+  },
+  "save": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "video",
+        0
+      ],
+      "filename_prefix": "openfield/reshoot",
+      "format": "auto",
+      "codec": "auto"
+    }
+  }
+}

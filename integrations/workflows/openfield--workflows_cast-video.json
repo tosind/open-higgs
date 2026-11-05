@@ -1,0 +1,428 @@
+{
+  "unet": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "icl": {
+    "class_type": "LTXICLoRALoaderModelOnly",
+    "inputs": {
+      "model": [
+        "unet",
+        0
+      ],
+      "lora_name": "ltx-2.5-22b-ic-lora-ingredients-0.9.safetensors",
+      "strength_model": 1.3
+    }
+  },
+  "clip": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors",
+      "type": "ltxv",
+      "device": "default"
+    }
+  },
+  "vvae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-video-vae-bf16.safetensors"
+    }
+  },
+  "avae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-audio-vae-bf16.safetensors"
+    }
+  },
+  "pos": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "clip",
+        0
+      ],
+      "text": "Reference sheet: Top row, all panels (Character): Mara. A woman in her forties with a black bob with one silver streak, round tortoiseshell glasses, a rust corduroy jacket over a teal sweater. Shown in reference views of the same person. Bottom row, full width (Setting): The pier. A long wooden pier in a storm, waves breaking over the rail.\n\nGenerated video: Mara (a woman in her forties with a black bob with one silver streak, round tortoiseshell glasses, a rust corduroy jacket over a teal sweater) walks along the pier toward the camera, a lantern swinging in her hand, rain driving sideways."
+    }
+  },
+  "neg": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "clip",
+        0
+      ],
+      "text": "pc game, console game, video game, cartoon, childish, ugly, worst quality, inconsistent motion, blurry, jittery, distorted"
+    }
+  },
+  "cond": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "pos",
+        0
+      ],
+      "negative": [
+        "neg",
+        0
+      ],
+      "frame_rate": 24
+    }
+  },
+  "sheetCanvas": {
+    "class_type": "EmptyImage",
+    "inputs": {
+      "width": 768,
+      "height": 448,
+      "batch_size": 1,
+      "color": 0
+    }
+  },
+  "sheet1Load": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input_cast_face.png"
+    }
+  },
+  "sheet1Fit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "sheet1Load",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 256,
+      "height": 260,
+      "crop": "center"
+    }
+  },
+  "sheet1Place": {
+    "class_type": "ImageCompositeMasked",
+    "inputs": {
+      "destination": [
+        "sheetCanvas",
+        0
+      ],
+      "source": [
+        "sheet1Fit",
+        0
+      ],
+      "x": 0,
+      "y": 0,
+      "resize_source": false
+    }
+  },
+  "sheet2Load": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input_cast_three_quarter.png"
+    }
+  },
+  "sheet2Fit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "sheet2Load",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 256,
+      "height": 260,
+      "crop": "center"
+    }
+  },
+  "sheet2Place": {
+    "class_type": "ImageCompositeMasked",
+    "inputs": {
+      "destination": [
+        "sheet1Place",
+        0
+      ],
+      "source": [
+        "sheet2Fit",
+        0
+      ],
+      "x": 256,
+      "y": 0,
+      "resize_source": false
+    }
+  },
+  "sheet3Load": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input_cast_full_body.png"
+    }
+  },
+  "sheet3Fit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "sheet3Load",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 256,
+      "height": 260,
+      "crop": "center"
+    }
+  },
+  "sheet3Place": {
+    "class_type": "ImageCompositeMasked",
+    "inputs": {
+      "destination": [
+        "sheet2Place",
+        0
+      ],
+      "source": [
+        "sheet3Fit",
+        0
+      ],
+      "x": 512,
+      "y": 0,
+      "resize_source": false
+    }
+  },
+  "sheet4Load": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input_cast_place.png"
+    }
+  },
+  "sheet4Fit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "sheet4Load",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 768,
+      "height": 188,
+      "crop": "center"
+    }
+  },
+  "sheet4Place": {
+    "class_type": "ImageCompositeMasked",
+    "inputs": {
+      "destination": [
+        "sheet3Place",
+        0
+      ],
+      "source": [
+        "sheet4Fit",
+        0
+      ],
+      "x": 0,
+      "y": 260,
+      "resize_source": false
+    }
+  },
+  "hold": {
+    "class_type": "RepeatImageBatch",
+    "inputs": {
+      "image": [
+        "sheet4Place",
+        0
+      ],
+      "amount": 121
+    }
+  },
+  "latV": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": 768,
+      "height": 448,
+      "length": 121,
+      "batch_size": 1
+    }
+  },
+  "latA": {
+    "class_type": "LTXVEmptyLatentAudio",
+    "inputs": {
+      "frames_number": 121,
+      "frame_rate": 24,
+      "batch_size": 1,
+      "audio_vae": [
+        "avae",
+        0
+      ]
+    }
+  },
+  "guide": {
+    "class_type": "LTXAddVideoICLoRAGuide",
+    "inputs": {
+      "positive": [
+        "cond",
+        0
+      ],
+      "negative": [
+        "cond",
+        1
+      ],
+      "vae": [
+        "vvae",
+        0
+      ],
+      "latent": [
+        "latV",
+        0
+      ],
+      "image": [
+        "hold",
+        0
+      ],
+      "frame_idx": 0,
+      "strength": 1,
+      "latent_downscale_factor": [
+        "icl",
+        1
+      ],
+      "crop": "disabled",
+      "use_tiled_encode": false,
+      "tile_size": 256,
+      "tile_overlap": 64
+    }
+  },
+  "cat": {
+    "class_type": "LTXVConcatAVLatent",
+    "inputs": {
+      "video_latent": [
+        "guide",
+        2
+      ],
+      "audio_latent": [
+        "latA",
+        0
+      ]
+    }
+  },
+  "guider": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": [
+        "icl",
+        0
+      ],
+      "positive": [
+        "guide",
+        0
+      ],
+      "negative": [
+        "guide",
+        1
+      ],
+      "cfg": 1
+    }
+  },
+  "sampler": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler_ancestral_cfg_pp"
+    }
+  },
+  "sigmas": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"
+    }
+  },
+  "noise": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    }
+  },
+  "s1": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "noise",
+        0
+      ],
+      "guider": [
+        "guider",
+        0
+      ],
+      "sampler": [
+        "sampler",
+        0
+      ],
+      "sigmas": [
+        "sigmas",
+        0
+      ],
+      "latent_image": [
+        "cat",
+        0
+      ]
+    }
+  },
+  "sep": {
+    "class_type": "LTXVSeparateAVLatent",
+    "inputs": {
+      "av_latent": [
+        "s1",
+        0
+      ]
+    }
+  },
+  "crop": {
+    "class_type": "LTXVCropGuides",
+    "inputs": {
+      "positive": [
+        "guide",
+        0
+      ],
+      "negative": [
+        "guide",
+        1
+      ],
+      "latent": [
+        "sep",
+        0
+      ]
+    }
+  },
+  "dv": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "crop",
+        2
+      ],
+      "vae": [
+        "vvae",
+        0
+      ],
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8
+    }
+  },
+  "vid": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "dv",
+        0
+      ],
+      "fps": 24
+    }
+  },
+  "save": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "vid",
+        0
+      ],
+      "filename_prefix": "video/OpenField_cast",
+      "format": "auto",
+      "codec": "auto"
+    }
+  }
+}

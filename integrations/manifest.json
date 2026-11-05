@@ -1,0 +1,1360 @@
+[
+  {
+    "repo": "wexloops/openfield",
+    "url": "https://github.com/wexloops/openfield",
+    "revision": "1c364121cd299da3959d7c8e77e12e9295a37943",
+    "license": "MIT",
+    "role": "Studio base, director, cast, 3D stage, generation and finishing.",
+    "status": "studio base",
+    "workflows": [
+      {
+        "id": "openfield--workflows_add-sound",
+        "name": "add sound"
+      },
+      {
+        "id": "openfield--workflows_cast-still",
+        "name": "cast still"
+      },
+      {
+        "id": "openfield--workflows_cast-video",
+        "name": "cast video"
+      },
+      {
+        "id": "openfield--workflows_cutout-still",
+        "name": "cutout still"
+      },
+      {
+        "id": "openfield--workflows_cutout-still-blur",
+        "name": "cutout still blur"
+      },
+      {
+        "id": "openfield--workflows_cutout-still-picture",
+        "name": "cutout still picture"
+      },
+      {
+        "id": "openfield--workflows_cutout-video-matte",
+        "name": "cutout video matte"
+      },
+      {
+        "id": "openfield--workflows_cutout-video-steady",
+        "name": "cutout video steady"
+      },
+      {
+        "id": "openfield--workflows_cutout-video-tracked-color",
+        "name": "cutout video tracked color"
+      },
+      {
+        "id": "openfield--workflows_director-cut",
+        "name": "director cut"
+      },
+      {
+        "id": "openfield--workflows_director-frame-era",
+        "name": "director frame era"
+      },
+      {
+        "id": "openfield--workflows_director-frame-flux2",
+        "name": "director frame flux2"
+      },
+      {
+        "id": "openfield--workflows_director-frame-qwen",
+        "name": "director frame qwen"
+      },
+      {
+        "id": "openfield--workflows_director-plan",
+        "name": "director plan"
+      },
+      {
+        "id": "openfield--workflows_director-shot",
+        "name": "director shot"
+      },
+      {
+        "id": "openfield--workflows_director-shot-era-ramp",
+        "name": "director shot era ramp"
+      },
+      {
+        "id": "openfield--workflows_edit-angle",
+        "name": "edit angle"
+      },
+      {
+        "id": "openfield--workflows_edit-coverage",
+        "name": "edit coverage"
+      },
+      {
+        "id": "openfield--workflows_edit-expand",
+        "name": "edit expand"
+      },
+      {
+        "id": "openfield--workflows_edit-free",
+        "name": "edit free"
+      },
+      {
+        "id": "openfield--workflows_edit-free-draft",
+        "name": "edit free draft"
+      },
+      {
+        "id": "openfield--workflows_edit-mask",
+        "name": "edit mask"
+      },
+      {
+        "id": "openfield--workflows_edit-next",
+        "name": "edit next"
+      },
+      {
+        "id": "openfield--workflows_edit-pushin",
+        "name": "edit pushin"
+      },
+      {
+        "id": "openfield--workflows_edit-relight",
+        "name": "edit relight"
+      },
+      {
+        "id": "openfield--workflows_edit-three-images",
+        "name": "edit three images"
+      },
+      {
+        "id": "openfield--workflows_effect-cake",
+        "name": "effect cake"
+      },
+      {
+        "id": "openfield--workflows_effect-cutout",
+        "name": "effect cutout"
+      },
+      {
+        "id": "openfield--workflows_effect-empty",
+        "name": "effect empty"
+      },
+      {
+        "id": "openfield--workflows_effect-flood",
+        "name": "effect flood"
+      },
+      {
+        "id": "openfield--workflows_effect-gulp",
+        "name": "effect gulp"
+      },
+      {
+        "id": "openfield--workflows_effect-inflate",
+        "name": "effect inflate"
+      },
+      {
+        "id": "openfield--workflows_effect-living-photo",
+        "name": "effect living photo"
+      },
+      {
+        "id": "openfield--workflows_effect-nightfall",
+        "name": "effect nightfall"
+      },
+      {
+        "id": "openfield--workflows_effect-pop",
+        "name": "effect pop"
+      },
+      {
+        "id": "openfield--workflows_effect-squish",
+        "name": "effect squish"
+      },
+      {
+        "id": "openfield--workflows_effect-unzip",
+        "name": "effect unzip"
+      },
+      {
+        "id": "openfield--workflows_extend-backward",
+        "name": "extend backward"
+      },
+      {
+        "id": "openfield--workflows_extend-forward",
+        "name": "extend forward"
+      },
+      {
+        "id": "openfield--workflows_finish-hdr",
+        "name": "finish hdr"
+      },
+      {
+        "id": "openfield--workflows_finish-hdr-loop-pad",
+        "name": "finish hdr loop pad"
+      },
+      {
+        "id": "openfield--workflows_image-flux2",
+        "name": "image flux2"
+      },
+      {
+        "id": "openfield--workflows_image-flux2-draft",
+        "name": "image flux2 draft"
+      },
+      {
+        "id": "openfield--workflows_image-qwen",
+        "name": "image qwen"
+      },
+      {
+        "id": "openfield--workflows_image-qwen-draft",
+        "name": "image qwen draft"
+      },
+      {
+        "id": "openfield--workflows_mirror-depth",
+        "name": "mirror depth"
+      },
+      {
+        "id": "openfield--workflows_mirror-edges",
+        "name": "mirror edges"
+      },
+      {
+        "id": "openfield--workflows_mirror-pose",
+        "name": "mirror pose"
+      },
+      {
+        "id": "openfield--workflows_mirror-restyle",
+        "name": "mirror restyle"
+      },
+      {
+        "id": "openfield--workflows_mirror-swap",
+        "name": "mirror swap"
+      },
+      {
+        "id": "openfield--workflows_object-draft",
+        "name": "object draft"
+      },
+      {
+        "id": "openfield--workflows_object-high",
+        "name": "object high"
+      },
+      {
+        "id": "openfield--workflows_object-own-alpha",
+        "name": "object own alpha"
+      },
+      {
+        "id": "openfield--workflows_reshoot-preview",
+        "name": "reshoot preview"
+      },
+      {
+        "id": "openfield--workflows_reshoot-render",
+        "name": "reshoot render"
+      },
+      {
+        "id": "openfield--workflows_reshoot-render-move",
+        "name": "reshoot render move"
+      },
+      {
+        "id": "openfield--workflows_seam-bridge",
+        "name": "seam bridge"
+      },
+      {
+        "id": "openfield--workflows_seam-regen",
+        "name": "seam regen"
+      },
+      {
+        "id": "openfield--workflows_seam-trim",
+        "name": "seam trim"
+      },
+      {
+        "id": "openfield--workflows_speak",
+        "name": "speak"
+      },
+      {
+        "id": "openfield--workflows_stage-look-depth",
+        "name": "stage look depth"
+      },
+      {
+        "id": "openfield--workflows_stage-look-edit",
+        "name": "stage look edit"
+      },
+      {
+        "id": "openfield--workflows_stage-shot",
+        "name": "stage shot"
+      },
+      {
+        "id": "openfield--workflows_transition-clips",
+        "name": "transition clips"
+      },
+      {
+        "id": "openfield--workflows_transition-stills",
+        "name": "transition stills"
+      },
+      {
+        "id": "openfield--workflows_upscale-dream",
+        "name": "upscale dream"
+      },
+      {
+        "id": "openfield--workflows_upscale-redraw",
+        "name": "upscale redraw"
+      },
+      {
+        "id": "openfield--workflows_upscale-redraw-still",
+        "name": "upscale redraw still"
+      },
+      {
+        "id": "openfield--workflows_upscale-sharpen",
+        "name": "upscale sharpen"
+      },
+      {
+        "id": "openfield--workflows_upscale-sharpen-still",
+        "name": "upscale sharpen still"
+      },
+      {
+        "id": "openfield--workflows_video-flf2v",
+        "name": "video flf2v"
+      },
+      {
+        "id": "openfield--workflows_video-h3-i2v",
+        "name": "video h3 i2v"
+      },
+      {
+        "id": "openfield--workflows_video-h3-refs",
+        "name": "video h3 refs"
+      },
+      {
+        "id": "openfield--workflows_video-i2v",
+        "name": "video i2v"
+      },
+      {
+        "id": "openfield--workflows_video-loop",
+        "name": "video loop"
+      },
+      {
+        "id": "openfield--workflows_video-ltx23-i2v",
+        "name": "video ltx23 i2v"
+      },
+      {
+        "id": "openfield--workflows_video-t2v",
+        "name": "video t2v"
+      }
+    ],
+    "files": [
+      {
+        "path": "workflows/add-sound.json",
+        "sha256": "7c8a433bc8d4d903e8d43f3a05c9160c312a6893f4989faa6ad99745afac0d88"
+      },
+      {
+        "path": "workflows/cast-still.json",
+        "sha256": "7c596cd7fe5c55a92352e2e2373fb7d4f1e5c0179f73d8ae09f450a3e7c3fd82"
+      },
+      {
+        "path": "workflows/cast-video.json",
+        "sha256": "17120c6a6abbbf34bd9cb7f7fff598da39360b0bc7e58bfc4f0a04338e2be9d6"
+      },
+      {
+        "path": "workflows/cutout-still-blur.json",
+        "sha256": "1fc2da83042fa675efb5738aef9ff0e896a61697a1de947425c027b1dd51a4b6"
+      },
+      {
+        "path": "workflows/cutout-still-picture.json",
+        "sha256": "b651c50955f44552cf5e07ef6950f9dcc037f93c5ad96798091a77000a3b9d05"
+      },
+      {
+        "path": "workflows/cutout-still.json",
+        "sha256": "d590d66774b52c17c901f8f1a28e359bd34f160d39fd9c22642c21694e3dfb18"
+      },
+      {
+        "path": "workflows/cutout-video-matte.json",
+        "sha256": "fca305da1e9f4c74b51a53b0779493c28895e2ee50e7bb231e340988504b6c19"
+      },
+      {
+        "path": "workflows/cutout-video-steady.json",
+        "sha256": "d2b8fe6db508fe8da0c8e7ea00cb9414fda5b029d0663461227cbeed63a09710"
+      },
+      {
+        "path": "workflows/cutout-video-tracked-color.json",
+        "sha256": "73f9547ba8edbb5241075d832ccbff5646c652461fd202999d8467f68b1e4b4a"
+      },
+      {
+        "path": "workflows/director-cut.json",
+        "sha256": "500f6380b6493660c4c7b37083181d0114c90a65fcbf45189cba25028239b11e"
+      },
+      {
+        "path": "workflows/director-frame-era.json",
+        "sha256": "229f8b9f4da8738ed060ece08d69fa0ddec076027437cd3104869e43126d67c1"
+      },
+      {
+        "path": "workflows/director-frame-flux2.json",
+        "sha256": "3edf7031a0e42178b82d4644dd83e74948085876e861d1ebbce15332dbeed67c"
+      },
+      {
+        "path": "workflows/director-frame-qwen.json",
+        "sha256": "cbc5612f28cd993fc6f0dbadf2ac3ecedc62f93aaa9eb46ec1ead0f5eaa2aa76"
+      },
+      {
+        "path": "workflows/director-plan.json",
+        "sha256": "b0c3a71b2c3eaddf8e136d8ce8cc833392b508d66294ff64b1138c94440942d7"
+      },
+      {
+        "path": "workflows/director-shot-era-ramp.json",
+        "sha256": "675a84fb0fdb8100383fc34250114313dd911d82b848cad1fc8bfd5fed3bfca8"
+      },
+      {
+        "path": "workflows/director-shot.json",
+        "sha256": "9720379285f8b7eb69bbe611d5cc0ee4ba04d3b6eaaf8ae6f22fbe92f6640da7"
+      },
+      {
+        "path": "workflows/edit-angle.json",
+        "sha256": "492b1a955a5a1e3a024f9f231440418f7c4070a501733827cd32076c04d2ac6b"
+      },
+      {
+        "path": "workflows/edit-coverage.json",
+        "sha256": "e49608d313478dc6604e861f08ee55330c48de12dcb3ea21c0779ced00b9796e"
+      },
+      {
+        "path": "workflows/edit-expand.json",
+        "sha256": "2aa1ab8ae238f2a6d94d29b1e62cb40d7da784acbe19dcbb545914d5f34017ee"
+      },
+      {
+        "path": "workflows/edit-free-draft.json",
+        "sha256": "cd22b2d5d62273c0ef9e17f24c00e3509024f602f7b4580c91bfeab9178bc5db"
+      },
+      {
+        "path": "workflows/edit-free.json",
+        "sha256": "ba698c4c4e3ec2ed72434b6ecd45735bd4b26aaa9af3fdb9f13047aec3ae43a3"
+      },
+      {
+        "path": "workflows/edit-mask.json",
+        "sha256": "deefe2ec60516f9ee540c481ce1e2292253587996140a81b76af4af792698f23"
+      },
+      {
+        "path": "workflows/edit-next.json",
+        "sha256": "53fca63df4203fa86d8b991a0ea048c6b2ec5cc1619d33c581d4cdf7af0be0f4"
+      },
+      {
+        "path": "workflows/edit-pushin.json",
+        "sha256": "408c76f9544de3f1db53f1c8fc142c9d35737e7389f7f50bbd178c2d9cf4478d"
+      },
+      {
+        "path": "workflows/edit-relight.json",
+        "sha256": "d3a6df935b76844f019c8a085a3f5a35c17e538bacf356521d78029bea09647b"
+      },
+      {
+        "path": "workflows/edit-three-images.json",
+        "sha256": "b33dfe15a4020e1062d3f247e2df8f6e56f26b57c18c4fd83399322f79027aaa"
+      },
+      {
+        "path": "workflows/effect-cake.json",
+        "sha256": "4db17e7a0d1b65c14af046dfc00ed4efc451f936a88f41da9a7e053202c57bc1"
+      },
+      {
+        "path": "workflows/effect-cutout.json",
+        "sha256": "ec8575ff9d62492e0c9968f65c2c296cce267ffb99d6e7da02aeaa18cbe80bea"
+      },
+      {
+        "path": "workflows/effect-empty.json",
+        "sha256": "0c7b2b368a0673fbe761a0d8ba51f5dc86d37d4863668502295a062612598b79"
+      },
+      {
+        "path": "workflows/effect-flood.json",
+        "sha256": "b13aab0bf712203133bb18d9ac44a1316c5e05609844bc5cc5c0984c954b3735"
+      },
+      {
+        "path": "workflows/effect-gulp.json",
+        "sha256": "239d135c378fded024447bb16c6f1008a80353e742265ae7eb9b24632dde3a5c"
+      },
+      {
+        "path": "workflows/effect-inflate.json",
+        "sha256": "8ebd8e8b208b90ed22f7094dd18881493a6f49ef190698513c43d5be8753a15e"
+      },
+      {
+        "path": "workflows/effect-living-photo.json",
+        "sha256": "58b0eea78423a7df73ca91a2887223313d6c18ab61495f81c894cbbf208bcc17"
+      },
+      {
+        "path": "workflows/effect-nightfall.json",
+        "sha256": "991f70ad4f9d2dd6cd95cb119c1191bd013c2f9cc89b13af551d5fb6b99264d4"
+      },
+      {
+        "path": "workflows/effect-pop.json",
+        "sha256": "30f59789d14136e40dece6202aa86fb5f3b14d25f1f5f282e8a9ae8de14c80d0"
+      },
+      {
+        "path": "workflows/effect-squish.json",
+        "sha256": "1a701c9926489adb392bdae0e845d5c8e9cd7bf3c0eb2c96a10abf940a4f4008"
+      },
+      {
+        "path": "workflows/effect-unzip.json",
+        "sha256": "30c7aa0bc06b22c73df83335e4bb43aa32cbdabe35435bbcfe9efa33e2a7802c"
+      },
+      {
+        "path": "workflows/extend-backward.json",
+        "sha256": "6ff540cd8574749474948ae2917579e3b9f12490fdc031e9f86321747aaa5abe"
+      },
+      {
+        "path": "workflows/extend-forward.json",
+        "sha256": "5abd795ba7a43bb60f084afb45748c3ca84f73cf1c67bd29453f2be2f109c2cc"
+      },
+      {
+        "path": "workflows/finish-hdr-loop-pad.json",
+        "sha256": "d384f041fd68ad5446910bbee0083a4f8468d2e1f878473916bd569692dd2bec"
+      },
+      {
+        "path": "workflows/finish-hdr.json",
+        "sha256": "cc1d544e8b08668c048353abd890c5625cb5da038a89d61c1ba9ce1b2751a417"
+      },
+      {
+        "path": "workflows/image-flux2-draft.json",
+        "sha256": "1ca29a4c28d8dde9568ac8e67822274ef08a2dd88402eef78b1289ac6d8b39b7"
+      },
+      {
+        "path": "workflows/image-flux2.json",
+        "sha256": "b8eeabfd64795eff3b2abe5e84342ad1fe9d149515ce606dd61e5ee51d50b78a"
+      },
+      {
+        "path": "workflows/image-qwen-draft.json",
+        "sha256": "b7145c6af0e73aa08e857e404e671159d7e0e8a0f5eaabd1534e0851edee41c9"
+      },
+      {
+        "path": "workflows/image-qwen.json",
+        "sha256": "43adb700684cac0a88b37b1b4b81a7bc0b115493abdb40776751fcd96dc4c3f0"
+      },
+      {
+        "path": "workflows/mirror-depth.json",
+        "sha256": "ceb4878f0dc9cce61f70e9ae9db50c8c02e21e4e830f484ded9ee6e0003e1dc2"
+      },
+      {
+        "path": "workflows/mirror-edges.json",
+        "sha256": "63d7e07660373d82912fed1bfff7276fdd4d4afe52f30c10d9f5a66c6be17119"
+      },
+      {
+        "path": "workflows/mirror-pose.json",
+        "sha256": "6e79ba506e4cbd0c9c9ab37010bcc915805bc74fba281bf02c7c6ea51341af7e"
+      },
+      {
+        "path": "workflows/mirror-restyle.json",
+        "sha256": "24ccbd872072fbfc68ff6bc64b5665d9dcbec18215ac1e0eba5f557a2fa6c249"
+      },
+      {
+        "path": "workflows/mirror-swap.json",
+        "sha256": "1d8f8cd28b92853faf25241011d01108f5bc2684d5eec5bf7ad81e81d4075eeb"
+      },
+      {
+        "path": "workflows/object-draft.json",
+        "sha256": "ecf3cbc5bcb95b3bc9554e3f689268826d3fc94461edbc1b579dd53877a203d4"
+      },
+      {
+        "path": "workflows/object-high.json",
+        "sha256": "ef5dce3de97dd600007be4ff6cc47ebab21e27847b12ce4ca1ff19b4c7ddf0a6"
+      },
+      {
+        "path": "workflows/object-own-alpha.json",
+        "sha256": "9b293f53c007c91a7ebd163816655eb116e95b30c1c63672fd464ff5ed8249d9"
+      },
+      {
+        "path": "workflows/reshoot-preview.json",
+        "sha256": "f33695aa82decbf427a6e8394e2346705bec9947fe659836bb63f30295229c92"
+      },
+      {
+        "path": "workflows/reshoot-render-move.json",
+        "sha256": "c7613e5e0ff8898140348bc43ab63557e7c80e78748916398ec3f2e5b31a17e4"
+      },
+      {
+        "path": "workflows/reshoot-render.json",
+        "sha256": "3ddccd220291922a300770ab5d61084e90ccd1c414f539f95d135e0e499c9ddc"
+      },
+      {
+        "path": "workflows/seam-bridge.json",
+        "sha256": "4b904abdaf0debdd0cd5eee74b60b4e7a286aed892d5bcdc9d0ea883c7783e8d"
+      },
+      {
+        "path": "workflows/seam-regen.json",
+        "sha256": "7785ce950bef3278b49742fefe832b13a496e542f6c564fed1415ed9fed0fed5"
+      },
+      {
+        "path": "workflows/seam-trim.json",
+        "sha256": "69a4542f8cbec1e4738a8b76e61ef0f46e2973c5c3d2a345cf017a9df32db39e"
+      },
+      {
+        "path": "workflows/speak.json",
+        "sha256": "f9a7102b1fb2196f0e29b42e17cc3232ae891580ffb3ab33b62d5aebfde234f6"
+      },
+      {
+        "path": "workflows/stage-look-depth.json",
+        "sha256": "f5eb9f42538c01cf069b6bf77ef5e79a40d349e2fc4f3b799371d30a7fa60951"
+      },
+      {
+        "path": "workflows/stage-look-edit.json",
+        "sha256": "ee6238431a01d08878d28175eab9334fd0c70f08074424a57bbcac5fd0800dbf"
+      },
+      {
+        "path": "workflows/stage-shot.json",
+        "sha256": "5c03fd92b54e9b094854c7a6b35644b322ccd0c2996ba9f27c86d93af129031a"
+      },
+      {
+        "path": "workflows/transition-clips.json",
+        "sha256": "b362821b06e9f20524546b00e3964554125dac0655e13b9f75b099a8b03b8ec1"
+      },
+      {
+        "path": "workflows/transition-stills.json",
+        "sha256": "551871f34a75481ca7582757ce2eaeefc1fec92ea5bfb99f70c0c8a141503f1e"
+      },
+      {
+        "path": "workflows/upscale-dream.json",
+        "sha256": "a8f3690971d5180e2c12b2cc0e5105baafb6abad85ef4f06e02585a207a603cf"
+      },
+      {
+        "path": "workflows/upscale-redraw-still.json",
+        "sha256": "91441b1556af6b9bdea7f7ddec75c92b658b9d7f622a1b6a4bd81409cc143c1d"
+      },
+      {
+        "path": "workflows/upscale-redraw.json",
+        "sha256": "9372e8a5ec4d20bddb70575330a085c952d98340e53e9d9ba8419588cceef88d"
+      },
+      {
+        "path": "workflows/upscale-sharpen-still.json",
+        "sha256": "4b394531761e389adc405064e244a2dddebd6a743af90357522d33ca7ea6972f"
+      },
+      {
+        "path": "workflows/upscale-sharpen.json",
+        "sha256": "88a7dde53f034e0f0b003c1fcb43ab6cc1874429197699a276c3eb34c24a2a69"
+      },
+      {
+        "path": "workflows/video-flf2v.json",
+        "sha256": "b8746edef262c2cfd0f5eb2abdafa79e2c50dafb3a06b6f9d0faf26e7dc70495"
+      },
+      {
+        "path": "workflows/video-h3-i2v.json",
+        "sha256": "30e6d9cb425bb2766a1696e62b3638d5d1b9a9b9777b0d8d835667f853590767"
+      },
+      {
+        "path": "workflows/video-h3-refs.json",
+        "sha256": "4c401ad5e9b66f1501ff10ebc4c53af12a6d7d133ae40ccbd292ee144f0bd476"
+      },
+      {
+        "path": "workflows/video-i2v.json",
+        "sha256": "8bb4dfeb4b75bfa5c4c632a895881ee0f3cfd4c2bf76438aadac49535a326f4b"
+      },
+      {
+        "path": "workflows/video-loop.json",
+        "sha256": "b7cd19d62c9a8c36d221ee7791c96641e6cd667df64bf725d828bb31d8c4eb68"
+      },
+      {
+        "path": "workflows/video-ltx23-i2v.json",
+        "sha256": "d01968b99de8c785126af94d032600ad6a88b758c2865fbae36e83b8eef7f50c"
+      },
+      {
+        "path": "workflows/video-t2v.json",
+        "sha256": "b6f09ba0aa713909aed4acd2c26d15510ca19e5a5d89ba10e9e314b292543883"
+      }
+    ],
+    "licenseSha256": "44ab60128f1c9c181dc12300981b9c997968a41b0a13d303197710afc874e617",
+    "revisionKind": "git-tree"
+  },
+  {
+    "repo": "D3voz/openjutsu",
+    "url": "https://github.com/D3voz/openjutsu",
+    "revision": "7fe118bb5a61fcfac0148e1bfea3dd29884dbf26",
+    "license": "MIT",
+    "role": "Character and object replacement API workflow pack.",
+    "status": "workflow pack",
+    "workflows": [
+      {
+        "id": "openjutsu--workflows_advanced_api",
+        "name": "advanced"
+      },
+      {
+        "id": "openjutsu--workflows_advanced_maxq_api",
+        "name": "advanced_maxq"
+      },
+      {
+        "id": "openjutsu--workflows_color_api",
+        "name": "color"
+      },
+      {
+        "id": "openjutsu--workflows_face_api",
+        "name": "face"
+      },
+      {
+        "id": "openjutsu--workflows_fit_api",
+        "name": "fit"
+      },
+      {
+        "id": "openjutsu--workflows_picture_from_picture_describe_flux3_api",
+        "name": "from_picture_describe_flux3"
+      },
+      {
+        "id": "openjutsu--workflows_picture_from_picture_motion_flux3_api",
+        "name": "from_picture_motion_flux3"
+      },
+      {
+        "id": "openjutsu--workflows_picture_from_picture_prepare_flux3_api",
+        "name": "from_picture_prepare_flux3"
+      },
+      {
+        "id": "openjutsu--workflows_picture_from_picture_solar_flux3_api",
+        "name": "from_picture_solar_flux3"
+      },
+      {
+        "id": "openjutsu--workflows_mask_api",
+        "name": "mask"
+      },
+      {
+        "id": "openjutsu--workflows_montage_api",
+        "name": "montage"
+      },
+      {
+        "id": "openjutsu--workflows_object_api",
+        "name": "object"
+      },
+      {
+        "id": "openjutsu--workflows_people_api",
+        "name": "people"
+      },
+      {
+        "id": "openjutsu--workflows_simple_api",
+        "name": "simple"
+      }
+    ],
+    "files": [
+      {
+        "path": "workflows/advanced.api.json",
+        "sha256": "e192bf774435f907e8dfc38953b14e8dd2c81b2683465c21c554344139fb52d7"
+      },
+      {
+        "path": "workflows/advanced_maxq.api.json",
+        "sha256": "5aa5fd9eae7f526e6b6a4614764d5213459f2bdb155453656637c73d7ef24670"
+      },
+      {
+        "path": "workflows/color.api.json",
+        "sha256": "1a81f437b9aa8f746d083c8ea8e47695628009d62447590b03ae0b2e4bf5b7a8"
+      },
+      {
+        "path": "workflows/face.api.json",
+        "sha256": "6ebc74af833a352ec68e19ba2be6ef43fca132c426cb22c11bfd99d10548dd81"
+      },
+      {
+        "path": "workflows/fit.api.json",
+        "sha256": "c6017d5962483aba9ae5bacccc9dd34a0fa870828cde3c432b8248140a5bebcc"
+      },
+      {
+        "path": "workflows/mask.api.json",
+        "sha256": "86d7902c94a557eaf03fa1440bca53724ccc3939d2a3b7927890e0216102e4d7"
+      },
+      {
+        "path": "workflows/montage.api.json",
+        "sha256": "2f7b9df30fa8635835ae32c067a27737e8602b112ce39625e07d967ecd6aab62"
+      },
+      {
+        "path": "workflows/object.api.json",
+        "sha256": "fbfec05071d7f6d9986ba2650d58db9a0e5810a1e13f8efba36afbbf0f67eee2"
+      },
+      {
+        "path": "workflows/people.api.json",
+        "sha256": "8b4c95c97cefc0ff4777c8968974ca7213145fec9b15e2c4afe44e844fb55db9"
+      },
+      {
+        "path": "workflows/picture/from_picture_describe_flux3.api.json",
+        "sha256": "2f457b7c7609b8e3da546283a39831d276a01d7923865a1a92962efb420fd709"
+      },
+      {
+        "path": "workflows/picture/from_picture_motion_flux3.api.json",
+        "sha256": "d1661293f6fe94ac4afdf43ade61b6de971283be3097717c0cd20e91f20ca85e"
+      },
+      {
+        "path": "workflows/picture/from_picture_prepare_flux3.api.json",
+        "sha256": "a223abff687b6b8d69f3896470489aadb18f3a43bab0316b2a78e382cbfd4c16"
+      },
+      {
+        "path": "workflows/picture/from_picture_solar_flux3.api.json",
+        "sha256": "4593f97631033a84898e25fd37934fc6f669eecc7e4a9d43d852cc61a84ace85"
+      },
+      {
+        "path": "workflows/simple.api.json",
+        "sha256": "24dc5b8ef45788c839beb96b617b404308ddfd8921e89cfd9008442ad29a666a"
+      }
+    ],
+    "licenseSha256": "114ead42f3d0b493d0f8182f92bb0b280a45e33a0add68cdd532843e3bf30275",
+    "revisionKind": "git-tree"
+  },
+  {
+    "repo": "sirioberati/Genjustsu-Open-Source-Workflow",
+    "url": "https://github.com/sirioberati/Genjustsu-Open-Source-Workflow",
+    "revision": "40fd6615c2b7d940d4d7060e82de522292eefe99",
+    "license": "MIT",
+    "role": "Depth, masks and original-audio replacement pipeline. Standalone companion source; Enhancor is not one of the three unified backends.",
+    "status": "companion source",
+    "workflows": [],
+    "files": [
+      {
+        "path": "SHA256SUMS.txt",
+        "sha256": "d1a733cab77208cf2349f89b7eef91424a31d3915d8aa91af5df1ebcdde6a0a8"
+      },
+      {
+        "path": "THIRD-PARTY.md",
+        "sha256": "421d8184df1257f54d79740c03fe7eab69ceb77e556e3eb91f215a31e195c467"
+      },
+      {
+        "path": "app.py",
+        "sha256": "0b28c022563f2cec3308f0a45eb457c2684ad7663fa97cca9127d712f0a4f379"
+      },
+      {
+        "path": "audio_workflow.py",
+        "sha256": "82a2f5a875ea77df5b561cbdb0e5c51bf08aab1fa541775f86da10ea59cd2488"
+      },
+      {
+        "path": "config.py",
+        "sha256": "b46631748985048536683f4c012e3f0dab1afebc35fe12b342010565f7b3cb15"
+      },
+      {
+        "path": "docs/ENHANCOR-API.md",
+        "sha256": "8045f5ff00e1dd31115c561e22d9be8a1147845b379712cef8852cc9f2fef422"
+      },
+      {
+        "path": "docs/MODELS.md",
+        "sha256": "30c166d820633648cc249e85a3d65e3983c7e251955340b7af955c60e218dfeb"
+      },
+      {
+        "path": "doctor.py",
+        "sha256": "a16b9c49ebe98252668c3cafd2c4055da54d154c35f3adac093e1ea8b0c2affa"
+      },
+      {
+        "path": "face_mesh.py",
+        "sha256": "4f9074bf8bb29cf1e9d80b8ac8466e482ac35ae15038fd02d189b83bac7ddb85"
+      },
+      {
+        "path": "launch.py",
+        "sha256": "5fa160a0b8b1758ff99abde66110e717626fa52971d89493ad79b96c72a930d4"
+      },
+      {
+        "path": "mask_review.py",
+        "sha256": "55a5172c025c99d21cc59067762d28c0953ffe1f4e19bc48a7402c9bd5a10842"
+      },
+      {
+        "path": "media_host.py",
+        "sha256": "b6d8eba90dd75864b313a60924cccaa4dfff4c4936f28161ba0136a24c15acbd"
+      },
+      {
+        "path": "mesh_worker.py",
+        "sha256": "d7a85690ea5276dcee757fd933bb13915d101c9ad31fefc7fdf1d4290db26078"
+      },
+      {
+        "path": "pipeline.py",
+        "sha256": "ed655f118cabf9a0d582e149fbc68facaf407b96bc68a2244cad68b87a0b2390"
+      },
+      {
+        "path": "raw_masks.py",
+        "sha256": "d5493e931c3814bbc5a202c40f2be37b6bbbfc6fdd2c605c4fbbd787d8a24cdc"
+      },
+      {
+        "path": "requirements.txt",
+        "sha256": "3d8ed39ded4a6d5bf45f7889af0156e887a8a297b01007a32514379a5164e0bc"
+      },
+      {
+        "path": "seedance_bridge.py",
+        "sha256": "fb4d97b612a01fbd7f54311492ccd6e618970b9ecdc4f29b6b6bcdd190bfa80f"
+      },
+      {
+        "path": "static/index.html",
+        "sha256": "f679f134705dc799b7388e065f7eb8662a68fe05d42f5de6d45f2d3013464691"
+      },
+      {
+        "path": "test_composite.py",
+        "sha256": "7eb9f24b9c1d1a2252b671180b0789e783e051c9082b2a2e194662bd2aaefd4d"
+      },
+      {
+        "path": "webhook.py",
+        "sha256": "a4be62a40482651ee02e8a9b90e1ab41603babb886933aa215640eb518294dd5"
+      },
+      {
+        "path": "workflow.py",
+        "sha256": "ff3cec9bbec8cf753342b41756efaa64abed320bbdbe9cb53202f7faa317e4f8"
+      }
+    ],
+    "licenseSha256": "9f13abeb69b16a609794b54c2e7a76a6f5c1d45daf8b3bba67dd26063e2aa051",
+    "revisionKind": "git-tree"
+  },
+  {
+    "repo": "neuregex/freefield",
+    "url": "https://github.com/neuregex/freefield",
+    "revision": "e5fa71b8ae52db7f20aa76b5e6e56fc3adff2fca",
+    "license": "MIT",
+    "role": "Curated app manifests and API workflow recipes.",
+    "status": "workflow pack",
+    "workflows": [
+      {
+        "id": "freefield--apps_angles_workflow_api",
+        "name": "angles"
+      },
+      {
+        "id": "freefield--apps_camera-moves_workflow_api",
+        "name": "camera-moves"
+      },
+      {
+        "id": "freefield--apps_character-swap_workflow_api",
+        "name": "character-swap"
+      },
+      {
+        "id": "freefield--apps_cinema-video_workflow_api",
+        "name": "cinema-video"
+      },
+      {
+        "id": "freefield--apps_color-grade_workflow_api",
+        "name": "color-grade"
+      },
+      {
+        "id": "freefield--apps_create-image_workflow_api",
+        "name": "create-image"
+      },
+      {
+        "id": "freefield--apps_depth-map_workflow_api",
+        "name": "depth-map"
+      },
+      {
+        "id": "freefield--apps_edit_workflow_api",
+        "name": "edit"
+      },
+      {
+        "id": "freefield--apps_relight_workflow_api",
+        "name": "relight"
+      },
+      {
+        "id": "freefield--apps_upscale_workflow_api",
+        "name": "upscale"
+      }
+    ],
+    "files": [
+      {
+        "path": "apps/angles/app.json",
+        "sha256": "350fd6169d205b3135f2412d16aab471a2a990ef88150540867ade2f94b32e35"
+      },
+      {
+        "path": "apps/angles/workflow.api.json",
+        "sha256": "22567dc360c186ead1dc42821818d8959de3ff07ccc73d342487c73bae17b683"
+      },
+      {
+        "path": "apps/camera-moves/app.json",
+        "sha256": "0124251438eea7750d1ada46a38e28d64d987586370d75eaf8002a0fc0bf273c"
+      },
+      {
+        "path": "apps/camera-moves/workflow.api.json",
+        "sha256": "06b1a892f4b17aaf2ed0615656a364edf77e3a577b35aa4c25ee5096d327adf7"
+      },
+      {
+        "path": "apps/character-swap/app.json",
+        "sha256": "80e4f546107d3b11f63c71bcff8fcde7bf5c12a792c7a8a448c2918a3171b832"
+      },
+      {
+        "path": "apps/character-swap/workflow.api.json",
+        "sha256": "353d36a1a539a7a93f7c1c56a33f60dbf8c60eb580d16c187084d90ab19ecc4b"
+      },
+      {
+        "path": "apps/cinema-video/app.json",
+        "sha256": "cbf61656ddb2abb297f50f2bebfcdd09472a5fc5dd82629210fa0d7635f470fc"
+      },
+      {
+        "path": "apps/cinema-video/workflow.api.json",
+        "sha256": "aa14d08c4c205f434a518c8e2638f95059d9f73ee215d503c580b9865831e059"
+      },
+      {
+        "path": "apps/color-grade/app.json",
+        "sha256": "99537d671b67352a1fd30ed98dc3c4502bdb8fc9e1a5c80cec47e6a2f46298c2"
+      },
+      {
+        "path": "apps/color-grade/workflow.api.json",
+        "sha256": "c3ff115a800a48de44f8e76f1240be6849ce67534a57d1e6a762cc31e9125eb5"
+      },
+      {
+        "path": "apps/create-image/app.json",
+        "sha256": "57f4f269fa72d2790b6eede54728914f2cafe71e6f46418345085919ab55ed36"
+      },
+      {
+        "path": "apps/create-image/workflow.api.json",
+        "sha256": "c6137be1210a2667d83c4a05492af0c2ed0da1f1ec5d7f3f8725cfacdc596931"
+      },
+      {
+        "path": "apps/depth-map/app.json",
+        "sha256": "7ce0a0064cf943102fb37a90e56d3f8c3e540843ba8d4c4d3ef3d9c90971cd83"
+      },
+      {
+        "path": "apps/depth-map/workflow.api.json",
+        "sha256": "7f2182cc10c8a7e12794c234183db082925faab66d1b01d9fb8e2a38cd0af5f1"
+      },
+      {
+        "path": "apps/edit/app.json",
+        "sha256": "6b70642294fa325b4349b91d1f85895dfa4ae1091d1ea4dab31ff6be2b79fbfd"
+      },
+      {
+        "path": "apps/edit/workflow.api.json",
+        "sha256": "43cc933ec1b6dd9d8fd576537a6bdd17fa1f940cc471fad762d7c318a039f410"
+      },
+      {
+        "path": "apps/relight/app.json",
+        "sha256": "57c34466747a9df098994c63d9a7653aefc44cf565eff227270a8548b24aabe0"
+      },
+      {
+        "path": "apps/relight/workflow.api.json",
+        "sha256": "3a0801fca3ebb388965a62befc2ff6cae754a706f5a6609b9e16ad6ddda7b4fe"
+      },
+      {
+        "path": "apps/upscale/app.json",
+        "sha256": "40bcb12071a9fef802068890abff3e9535c5f7b28a6cd76bec8a29bf07908b79"
+      },
+      {
+        "path": "apps/upscale/workflow.api.json",
+        "sha256": "bd66957d6af3e7844147e1e5e2e3b4e37298e429b00ef4ba8b10e2b7d5301768"
+      }
+    ],
+    "licenseSha256": "7f0e629ca831057bc4750e109ee8bb5be7f9385e85356a72a4a20b3a6f40decc",
+    "revisionKind": "git-tree"
+  },
+  {
+    "repo": "raph651/open-source-canvas",
+    "url": "https://github.com/raph651/open-source-canvas",
+    "revision": "356ae288fca03660b19ec230695c19cbcb1fb829",
+    "license": "MIT",
+    "role": "SD Turbo starter workflow and LTX workflow. Canvas interaction implemented in the unified studio.",
+    "status": "workflow pack",
+    "workflows": [
+      {
+        "id": "open-source-canvas--workflows_ltx-video_api",
+        "name": "ltx video"
+      },
+      {
+        "id": "open-source-canvas--workflows_sd-turbo_api",
+        "name": "sd turbo"
+      }
+    ],
+    "files": [
+      {
+        "path": "workflows/ltx-video.api.json",
+        "sha256": "eda11892844bcbbf2362705158d55bce1c73852de6b3e401135eece1bf14d288"
+      },
+      {
+        "path": "workflows/sd-turbo.api.json",
+        "sha256": "c0c186fdaef8baac54a5523337960e9b8814e018ea58545bf29d748c305dea51"
+      }
+    ],
+    "licenseSha256": "072f0de72ad3af833aaf040709873aba69ce9a1772978773a7ec008457f2f978",
+    "revisionKind": "git-tree"
+  },
+  {
+    "repo": "Leonxlnx/cinetic",
+    "url": "https://github.com/Leonxlnx/cinetic",
+    "revision": "a6a6a02202af73e450952b2e04d43c443c6124d2",
+    "license": "MIT",
+    "role": "Motion design and creative brief references. Reference material, not an integrated video renderer.",
+    "status": "creative references",
+    "workflows": [],
+    "files": [
+      {
+        "path": "skills/cinetic/LICENSE.txt",
+        "sha256": "4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df"
+      },
+      {
+        "path": "skills/cinetic/SKILL.md",
+        "sha256": "8ea43e45fcaa3263467688962695517621f6041d9dd05a86a5184491617fccf3"
+      },
+      {
+        "path": "skills/cinetic/references/templates.md",
+        "sha256": "2e80c72c5302ec87b610bfc579d259f7b19ac07c785c968ea57952b27fa3e1d2"
+      }
+    ],
+    "licenseSha256": "4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df",
+    "revisionKind": "git-tree"
+  },
+  {
+    "repo": "rk0neki/OpenKatana",
+    "url": "https://github.com/rk0neki/OpenKatana",
+    "revision": "b9282bf0740a7df5b5a8862b5e289ef4cd642641",
+    "license": "Apache-2.0",
+    "role": "Editing workflow pack and timeline specification. Full engine remains an optional standalone companion.",
+    "status": "workflow pack",
+    "workflows": [
+      {
+        "id": "openkatana--workflows_image-invert_api",
+        "name": "image invert"
+      },
+      {
+        "id": "openkatana--workflows_interpolation_api",
+        "name": "interpolation"
+      },
+      {
+        "id": "openkatana--workflows_matte_api",
+        "name": "matte"
+      },
+      {
+        "id": "openkatana--workflows_solid-smoke_api",
+        "name": "solid smoke"
+      }
+    ],
+    "files": [
+      {
+        "path": "NOTICE",
+        "sha256": "70f5e8aa0c77db39f528eb60442419c5675bbe7c3cd506a9c1261509d3f5a3a8"
+      },
+      {
+        "path": "THIRD_PARTY_NOTICES.md",
+        "sha256": "1b4272f97944d83a85000d78970fb50c7f0daba29eea1ed42e363fea459345f0"
+      },
+      {
+        "path": "docs/COMPOSITIONS.md",
+        "sha256": "0cc8307db122c0a90dc36e6726c065444d9285a94a334fda84bae49b39c5ecd3"
+      },
+      {
+        "path": "docs/TIMELINE.md",
+        "sha256": "44fadab59c1f4374cf9f6d795fd56b5f1d9c5430ffcc059ef3b59a8297b9a33f"
+      },
+      {
+        "path": "licenses/Comfy-workflow-templates-MIT.txt",
+        "sha256": "5dccd61c80c847cd6b22fa98124010163ab8646e573557a16a5cae31122f2056"
+      },
+      {
+        "path": "licenses/OpenKatana-MIT.txt",
+        "sha256": "96905d73ff1fcd4e8a63cbe95e003cb1ad3ba678f8d89bbc818ae85924832fe3"
+      },
+      {
+        "path": "workflows/image-invert.api.json",
+        "sha256": "a9b37359974c28207dfd8be331fe2f4b0ab0632ee257277c311b6740137b9eca"
+      },
+      {
+        "path": "workflows/interpolation.api.json",
+        "sha256": "566a359d170c47d562034268ce27580cb2ec0d7e186056362983e5cca56b945d"
+      },
+      {
+        "path": "workflows/matte.api.json",
+        "sha256": "a158ee9ef3fa5b38c8f441a405ead516bafe30673d33488543e15b28df19b7c7"
+      },
+      {
+        "path": "workflows/qwen-reference-edit.parameters.json",
+        "sha256": "e2299fb011f532c95e0f135349e4a839d2ca9d8e402fbc072a7e8056088159e4"
+      },
+      {
+        "path": "workflows/solid-smoke.api.json",
+        "sha256": "8e6746d9ee52aa74146a4d0dad428890582165194424de0916d7169c42778581"
+      }
+    ],
+    "licenseSha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "revisionKind": "git-tree"
+  },
+  {
+    "repo": "Arfolomew/backlot",
+    "url": "https://github.com/Arfolomew/backlot",
+    "revision": "c28a493417aa884da1e1380fbae53883be041b6c",
+    "license": "MIT",
+    "role": "Cinema camera presets and relay-swap workflow.",
+    "status": "workflow pack",
+    "workflows": [
+      {
+        "id": "backlot--app_workflows_h3_relay_character_swap_api",
+        "name": "h3_relay_character_swap"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/cinema.json",
+        "sha256": "11c0d31c4a0aca24f8e26210cfac9d5ae07020b011d84acbc9ac4ac7463c1d17"
+      },
+      {
+        "path": "app/moves.json",
+        "sha256": "a46841e0e0d4eb753835830d28c5f2f8b0f4834c7f77fb7f7258ae216e2dd2f1"
+      },
+      {
+        "path": "app/workflows/h3_relay_character_swap.api.json",
+        "sha256": "d128d297ecb2696d9560a6eaffec261f29eb502b31c08288dc34d517f65bc476"
+      }
+    ],
+    "licenseSha256": "e57663d6d2de49c71355671300fb3ef628bb368951591d586afb6ccccf601a38",
+    "revisionKind": "git-tree"
+  },
+  {
+    "repo": "Tekholms-LW/ReAngle",
+    "url": "https://github.com/Tekholms-LW/ReAngle",
+    "revision": "d13a284274d13f8d915b147c41e9c07196da2bb5",
+    "license": "Apache-2.0",
+    "role": "Camera reshoot workflows and separately installable ComfyUI node pack.",
+    "status": "workflow pack",
+    "workflows": [
+      {
+        "id": "reangle--workflows_ltx25_reshoot_api",
+        "name": "ltx25_reshoot_api"
+      },
+      {
+        "id": "reangle--workflows_ltx25_reshoot_api_depth",
+        "name": "ltx25_reshoot_api_depth"
+      },
+      {
+        "id": "reangle--workflows_ltx25_reshoot_api_upscale",
+        "name": "ltx25_reshoot_api_upscale"
+      }
+    ],
+    "files": [
+      {
+        "path": "comfyui-reshoot-nodes/README.md",
+        "sha256": "c49454631a9f5b0f4d693a7ec85f5445cd30bf5b11d66f4f823243d805060b35"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/__init__.py",
+        "sha256": "e603e0e75936810a7bc8337e14c9bb16f54d601b4a5872f3b11749e46bdf931e"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/pyproject.toml",
+        "sha256": "301e544d95838047235793d43bc2475b5b1f1c81f30609af356c4c0e7ebadeef"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/requirements.txt",
+        "sha256": "a83a2a4ed7ab2e022b9b8a83cfa2b8cf52cc243006c597e8b96f90a8365590ac"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/reshoot_nodes/__init__.py",
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/reshoot_nodes/camera.py",
+        "sha256": "7d5be893dc22cafb8f700e4db03ee1d191bc1cd88d12a9476eb035805944e6da"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/reshoot_nodes/camera_json.py",
+        "sha256": "b44b3c33c3ef758425deec97be069c3e05e06f47db4376cfa6dfc412467f2f5a"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/reshoot_nodes/nodes.py",
+        "sha256": "2d945307fd0f661bd5b0def288ebfe4e0e0108b67e9a5fe1571600b72f0ae102"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/reshoot_nodes/reproject.py",
+        "sha256": "3221dd80c3afb70ab99c5fe77764a1b252b99e1c4f9145c3f99998a4db7e107c"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/tests/test_camera_json.py",
+        "sha256": "03714f22b156187dd3bf14011ffd31c8109ddbd5f8b9a9cb51ab21c5d6ce3f47"
+      },
+      {
+        "path": "comfyui-reshoot-nodes/tests/test_core.py",
+        "sha256": "24b530f8a430cddc216b36546a2fedfe1755cda8350a1a74c52cdf9f88741d98"
+      },
+      {
+        "path": "workflows/ltx25_reshoot_api.json",
+        "sha256": "4a1cc132f2836c6f26930405e3085ab5c55c4fd117cc49eb0940c668b12a128a"
+      },
+      {
+        "path": "workflows/ltx25_reshoot_api_depth.json",
+        "sha256": "c5b5285bf7227f01e463ed132271c8abda83df303703a638e33e5b34f1bdbc91"
+      },
+      {
+        "path": "workflows/ltx25_reshoot_api_upscale.json",
+        "sha256": "500458b70091702055f563d928e99a4484dd76428d3d23d6a6e59a3b9101316e"
+      }
+    ],
+    "licenseSha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "revisionKind": "git-tree"
+  },
+  {
+    "repo": "AInVFX/ainvfx-paintaplate",
+    "url": "https://github.com/AInVFX/ainvfx-paintaplate",
+    "revision": "cce12785af3941dc9a7c66bc59141510be9383e7",
+    "license": "Apache-2.0",
+    "role": "Plate editing, matte, compositing and export workflow recipes. Custom node pack must be installed separately.",
+    "status": "workflow pack",
+    "workflows": [
+      {
+        "id": "ainvfx-paintaplate--web_workflows_clean",
+        "name": "clean"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_cleanup",
+        "name": "cleanup"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_comp",
+        "name": "comp"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_edit",
+        "name": "edit"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_export",
+        "name": "export"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_fluid",
+        "name": "fluid"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_hdr",
+        "name": "hdr"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_ingest",
+        "name": "ingest"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_matte",
+        "name": "matte"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_prompt",
+        "name": "prompt"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_review",
+        "name": "review"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_shot",
+        "name": "shot"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_snap",
+        "name": "snap"
+      },
+      {
+        "id": "ainvfx-paintaplate--web_workflows_warm",
+        "name": "warm"
+      }
+    ],
+    "files": [
+      {
+        "path": "web/models.json",
+        "sha256": "7e0898c212776ad1a95a7ac456805c4d68c6808a85b1362740651dc02c47a460"
+      },
+      {
+        "path": "web/workflows/clean.json",
+        "sha256": "5f570d9a303f4e4d4cedb130780d277180d5d66f2cc2469cd1c6ae9bfad03d85"
+      },
+      {
+        "path": "web/workflows/cleanup.json",
+        "sha256": "eab3451e916a9ade1cda32705257dbcebc4ce3d27643469e878e7fa254a06260"
+      },
+      {
+        "path": "web/workflows/comp.json",
+        "sha256": "5cd2559355732352acc7e5febda332ac70a719363a028696c0abcc80ded7aad0"
+      },
+      {
+        "path": "web/workflows/edit.json",
+        "sha256": "4cc09592fd421af732a360afa7d32d6b1555e498e761c4d2d0a8f0ec718b7c13"
+      },
+      {
+        "path": "web/workflows/export.json",
+        "sha256": "0e291a3ed4cb3c6dfbc6cdf3923ca83d4a50a8bdc0cd37975e3ca9e560eba828"
+      },
+      {
+        "path": "web/workflows/fluid.json",
+        "sha256": "3616254e117ae7aeb938c81359ed404ad8c2f474457d394e24b347acf50fe9a3"
+      },
+      {
+        "path": "web/workflows/hdr.json",
+        "sha256": "37261733311193893e701be3ba34e7c028d9e35425a352b181ad459cbe80e8a3"
+      },
+      {
+        "path": "web/workflows/ingest.json",
+        "sha256": "f553e36c581cadd6a91b94eb73320fcfab15fa6bec6d5ed11db4f830abd3103e"
+      },
+      {
+        "path": "web/workflows/matte.json",
+        "sha256": "212eb879e7be8badcafa9b2e23814a74ec2710c91455064cfe4c4ad699a1742e"
+      },
+      {
+        "path": "web/workflows/prompt.json",
+        "sha256": "bc125735b5e8d52194833ac73b41e0c184c0d632bf37c0670252a5ad65e45250"
+      },
+      {
+        "path": "web/workflows/review.json",
+        "sha256": "8a35bc0313ed389713c89ea385abaf79e85695858c8927a0f2a5a022b56a1d72"
+      },
+      {
+        "path": "web/workflows/shot.json",
+        "sha256": "d666ea34ca40dea8fdbcf80d38b25a07942ffec06374be1a4c9c920e3237fa41"
+      },
+      {
+        "path": "web/workflows/snap.json",
+        "sha256": "73bc5d48c15db3ef1acdb0155006d399b637fa00295205ca6c7520d82d7aeff9"
+      },
+      {
+        "path": "web/workflows/warm.json",
+        "sha256": "25840230f488b034cf6a90b0bb29e3cef75ee41cf12b810121b9d18eb168c466"
+      }
+    ],
+    "licenseSha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "revisionKind": "git-tree"
+  }
+]

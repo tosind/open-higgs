@@ -6,6 +6,7 @@
  * talks to ComfyUI directly; every job goes through engine.ts (Comfy SDK).
  */
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
+import { registerStudio } from './studio.js';
 import websocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';
 import { createReadStream, existsSync, realpathSync, statSync } from 'fs';
@@ -67,6 +68,7 @@ if (config.judge.on && config.judge.password.length < MIN_PASSWORD) {
 }
 
 const app = Fastify({ bodyLimit: 64 * 1024 * 1024 });
+registerStudio(app);
 await app.register(websocket);
 
 let judgeState: (() => JudgeState) | undefined;
@@ -83,6 +85,8 @@ if (config.judge.on) {
     try { const u = new URL(o); return LOCAL_HOSTS.has(u.hostname.toLowerCase()) || LOCAL_HOSTS.has(`[${u.hostname}]`); } catch { return false; }
   };
   app.addHook('onRequest', async (req, reply) => {
+    // The worker routes authenticate every call with a separate bearer token.
+    if (req.url.startsWith('/api/studio/worker/') || req.url === '/api/studio/worker/claim') return;
     const host = (req.headers.host ?? '').replace(/:\d+$/, '').toLowerCase();
     if (!LOCAL_HOSTS.has(host)) return reply.code(403).send({ error: 'OpenField only answers on this machine' });
     const origin = req.headers.origin;

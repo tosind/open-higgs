@@ -1,0 +1,484 @@
+{
+  "unet": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "clip": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors",
+      "type": "ltxv",
+      "device": "default"
+    }
+  },
+  "vvae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-video-vae-bf16.safetensors"
+    }
+  },
+  "avae": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ltx-2.5-audio-vae-bf16.safetensors"
+    }
+  },
+  "pos": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "clip",
+        0
+      ],
+      "text": "One continuous shot. The first scene fluidly morphs into the second: shapes, light and color melt and reform into the new subject without a cut."
+    }
+  },
+  "neg": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "clip",
+        0
+      ],
+      "text": "pc game, console game, video game, cartoon, childish, ugly, blurry, low quality, text, watermark"
+    }
+  },
+  "cond": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "pos",
+        0
+      ],
+      "negative": [
+        "neg",
+        0
+      ],
+      "frame_rate": 24
+    }
+  },
+  "sampler": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler_ancestral"
+    }
+  },
+  "sigmas": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1.0, 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0"
+    }
+  },
+  "noise": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 42
+    }
+  },
+  "a": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "input_video.mp4",
+      "force_rate": 24,
+      "custom_width": 0,
+      "custom_height": 0,
+      "frame_load_cap": 120,
+      "skip_first_frames": 0,
+      "select_every_nth": 1
+    }
+  },
+  "aFit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "a",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 1280,
+      "height": 704,
+      "crop": "center"
+    }
+  },
+  "b": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "input_video_2.mp4",
+      "force_rate": 24,
+      "custom_width": 0,
+      "custom_height": 0,
+      "frame_load_cap": 120,
+      "skip_first_frames": 0,
+      "select_every_nth": 1
+    }
+  },
+  "bFit": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "b",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 1280,
+      "height": 704,
+      "crop": "center"
+    }
+  },
+  "aLast": {
+    "class_type": "ImageFromBatch",
+    "inputs": {
+      "image": [
+        "aFit",
+        0
+      ],
+      "batch_index": -1,
+      "length": 1
+    }
+  },
+  "bFirst": {
+    "class_type": "ImageFromBatch",
+    "inputs": {
+      "image": [
+        "bFit",
+        0
+      ],
+      "batch_index": 0,
+      "length": 1
+    }
+  },
+  "aPrep": {
+    "class_type": "LTXVPreprocess",
+    "inputs": {
+      "image": [
+        "aLast",
+        0
+      ],
+      "img_compression": 18
+    }
+  },
+  "bPrep": {
+    "class_type": "LTXVPreprocess",
+    "inputs": {
+      "image": [
+        "bFirst",
+        0
+      ],
+      "img_compression": 18
+    }
+  },
+  "lat": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": 1280,
+      "height": 704,
+      "length": 49,
+      "batch_size": 1
+    }
+  },
+  "gA": {
+    "class_type": "LTXVAddGuide",
+    "inputs": {
+      "positive": [
+        "cond",
+        0
+      ],
+      "negative": [
+        "cond",
+        1
+      ],
+      "vae": [
+        "vvae",
+        0
+      ],
+      "latent": [
+        "lat",
+        0
+      ],
+      "image": [
+        "aPrep",
+        0
+      ],
+      "frame_idx": 0,
+      "strength": 0.85
+    }
+  },
+  "gB": {
+    "class_type": "LTXVAddGuide",
+    "inputs": {
+      "positive": [
+        "gA",
+        0
+      ],
+      "negative": [
+        "gA",
+        1
+      ],
+      "vae": [
+        "vvae",
+        0
+      ],
+      "latent": [
+        "gA",
+        2
+      ],
+      "image": [
+        "bPrep",
+        0
+      ],
+      "frame_idx": -1,
+      "strength": 0.85
+    }
+  },
+  "latA": {
+    "class_type": "LTXVEmptyLatentAudio",
+    "inputs": {
+      "frames_number": 49,
+      "frame_rate": 24,
+      "batch_size": 1,
+      "audio_vae": [
+        "avae",
+        0
+      ]
+    }
+  },
+  "av": {
+    "class_type": "LTXVConcatAVLatent",
+    "inputs": {
+      "video_latent": [
+        "gB",
+        2
+      ],
+      "audio_latent": [
+        "latA",
+        0
+      ]
+    }
+  },
+  "s1Guide": {
+    "class_type": "CFGGuider",
+    "inputs": {
+      "model": [
+        "unet",
+        0
+      ],
+      "positive": [
+        "gB",
+        0
+      ],
+      "negative": [
+        "gB",
+        1
+      ],
+      "cfg": 1
+    }
+  },
+  "s1Sample": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": [
+        "noise",
+        0
+      ],
+      "guider": [
+        "s1Guide",
+        0
+      ],
+      "sampler": [
+        "sampler",
+        0
+      ],
+      "sigmas": [
+        "sigmas",
+        0
+      ],
+      "latent_image": [
+        "av",
+        0
+      ]
+    }
+  },
+  "s1Split": {
+    "class_type": "LTXVSeparateAVLatent",
+    "inputs": {
+      "av_latent": [
+        "s1Sample",
+        0
+      ]
+    }
+  },
+  "crop": {
+    "class_type": "LTXVCropGuides",
+    "inputs": {
+      "positive": [
+        "gB",
+        0
+      ],
+      "negative": [
+        "gB",
+        1
+      ],
+      "latent": [
+        "s1Split",
+        0
+      ]
+    }
+  },
+  "dv": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "crop",
+        2
+      ],
+      "vae": [
+        "vvae",
+        0
+      ],
+      "tile_size": 768,
+      "overlap": 64,
+      "temporal_size": 4096,
+      "temporal_overlap": 64
+    }
+  },
+  "bridge": {
+    "class_type": "ImageFromBatch",
+    "inputs": {
+      "image": [
+        "dv",
+        0
+      ],
+      "batch_index": 1,
+      "length": 47
+    }
+  },
+  "joinA": {
+    "class_type": "ImageBatch",
+    "inputs": {
+      "image1": [
+        "aFit",
+        0
+      ],
+      "image2": [
+        "bridge",
+        0
+      ]
+    }
+  },
+  "joinB": {
+    "class_type": "ImageBatch",
+    "inputs": {
+      "image1": [
+        "joinA",
+        0
+      ],
+      "image2": [
+        "bFit",
+        0
+      ]
+    }
+  },
+  "da": {
+    "class_type": "LTXVAudioVAEDecode",
+    "inputs": {
+      "samples": [
+        "s1Split",
+        1
+      ],
+      "audio_vae": [
+        "avae",
+        0
+      ]
+    }
+  },
+  "bridgeA": {
+    "class_type": "TrimAudioDuration",
+    "inputs": {
+      "audio": [
+        "da",
+        0
+      ],
+      "start_index": 0.0417,
+      "duration": 1.9583
+    }
+  },
+  "aA": {
+    "class_type": "TrimAudioDuration",
+    "inputs": {
+      "audio": [
+        "a",
+        2
+      ],
+      "start_index": 0,
+      "duration": 5
+    }
+  },
+  "joinAudioA": {
+    "class_type": "AudioConcat",
+    "inputs": {
+      "audio1": [
+        "aA",
+        0
+      ],
+      "audio2": [
+        "bridgeA",
+        0
+      ],
+      "direction": "after"
+    }
+  },
+  "bA": {
+    "class_type": "TrimAudioDuration",
+    "inputs": {
+      "audio": [
+        "b",
+        2
+      ],
+      "start_index": 0,
+      "duration": 5
+    }
+  },
+  "joinAudioB": {
+    "class_type": "AudioConcat",
+    "inputs": {
+      "audio1": [
+        "joinAudioA",
+        0
+      ],
+      "audio2": [
+        "bA",
+        0
+      ],
+      "direction": "after"
+    }
+  },
+  "video": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "joinB",
+        0
+      ],
+      "fps": 24,
+      "audio": [
+        "joinAudioB",
+        0
+      ]
+    }
+  },
+  "save": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "video",
+        0
+      ],
+      "filename_prefix": "openfield/transition",
+      "format": "auto",
+      "codec": "auto"
+    }
+  }
+}

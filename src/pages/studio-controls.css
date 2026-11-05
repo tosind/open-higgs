@@ -1,0 +1,67 @@
+.oh-studio .oh-inspector {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+.oh-studio .oh-inspector-heading {
+  flex: none;
+  margin: 0;
+  padding: 23px 21px 17px;
+}
+.oh-inspector-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 21px 22px;
+}
+.oh-inspector-footer {
+  flex: none;
+  padding: 13px 21px 10px;
+  background: #181c17;
+  border-top: 1px solid #35412e;
+}
+.oh-inspector-footer:empty {
+  display: none;
+}
+.oh-inspector-footer .oh-generate {
+  margin-top: 0;
+  font-size: 12px !important;
+}
+.oh-inspector-footer .oh-generation-note {
+  font-size: 8px;
+  margin: 9px 0 0;
+}
+.oh-studio .oh-inspector .oh-label textarea {
+  font-size: 12px;
+  line-height: 1.65;
+}
+.oh-studio .oh-inspector .oh-label {
+  font-size: 9px;
+}
+@media (max-width: 1250px) {
+  .oh-studio .oh-inspector-heading {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .oh-inspector-body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .oh-inspector-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+@media (max-width: 680px) {
+  .oh-studio .oh-inspector {
+    height: 780px;
+    max-height: none;
+  }
+  .oh-inspector-body {
+    min-height: 200px;
+  }
+  .oh-inspector-footer {
+    padding-bottom: 16px;
+  }
+}
