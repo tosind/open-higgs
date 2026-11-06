@@ -6,9 +6,27 @@
 
 A creative studio for planning shots, generating takes and cutting a film, with your choice of compute.
 
-![Open Higgs studio](preview.png)
+![Open Higgs story canvas](docs/media/studio-canvas.jpg)
 
 **One project, three ways to run inference:** paid APIs through WaveSpeed or Kie Market, your local ComfyUI GPU, or independent Kaggle twin T4 workers. No Higgsfield account is required. Open Higgs is an independent project built on [Openfield](https://github.com/wexloops/openfield).
+
+## Watch the launch film
+
+[![Watch the 24-second Open Higgs launch film](docs/media/launch-poster.jpg)](https://github.com/tosind/open-higgs/releases/download/v0.4.0-alpha.1/open-higgs-launch.mp4)
+
+A 24-second tour of the actual studio, its three execution paths, workflow library and timeline. The editing demo uses bundled Openfield reference clips, not new GPU generations from this launch session. [Media credits](docs/media/CREDITS.md).
+
+## Inside the studio
+
+| Workflow library | Timeline editor |
+| --- | --- |
+| ![Source and workflow library](docs/media/workflow-library.jpg) | ![Timeline with bundled reference footage](docs/media/timeline-editor.jpg) |
+
+| Execution choices | Render queue |
+| --- | --- |
+| ![Paid APIs, local GPU and Kaggle twin T4 choices](docs/media/compute-selector.jpg) | ![The project render queue](docs/media/render-queue.jpg) |
+
+Screenshots show the running application. Model files, provider keys and notebook workers are configured separately. The empty queue is shown before any inference is submitted.
 
 ## What works today
 
